@@ -6,6 +6,8 @@
 *.ko
 *.obj
 *.elf
+*.project
+*.cproject
 *build
 
 # Linker output
