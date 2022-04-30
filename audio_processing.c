@@ -31,6 +31,7 @@ static float micBack_output[FFT_SIZE];
 //pour fixer la fréquence d'utilisation du son dans le projet
 #define MIN_FREQ	115	// On n'analyse pas le bruit avant 1 796,875 Hz
 #define MAX_FREQ	140 	// On n'analyse pas le bruit après 2 187,5 Hz
+#define FREQ_RANGE (MAX_FREQ-MIN_FREQ)	//MAX_FREQ-MIN_FREQ
 
 #define FREQ_REF	128   // 2 000 Hz
 #define FREQ_MVT_MIN	(FREQ_REF-1) // 1 984,375 Hz
@@ -39,6 +40,7 @@ static float micBack_output[FFT_SIZE];
 #define NB_ECHANTILLONS 10
 #define NB_ECHANTILLONS_DETECTES 5
 
+#define NB_SAMPLES 50 //Nb de samples enregistrés pour localiser le son
 
 #define MIC_FRONT_RIGHT 1
 #define MIC_FRONT_LEFT 2
@@ -55,9 +57,9 @@ static	int  son_detection = 0; // Signal qui indique si un bruit est détecté
 
 static uint16_t micro_a_proximite=0;
 
-
-
-
+static int recorded_sound_1[NB_SAMPLES];
+static int recorded_sound_2[NB_SAMPLES];
+static int recorded_sound_3[NB_SAMPLES];
 
 static void serial_start(void)
 {
@@ -112,6 +114,31 @@ bool detection_son (void){
 	return son_detection;
 
 	}
+
+int mean_sound(float* mic_nb){
+	float average=0;
+	for(uint8_t i=MIN_FREQ; i<=MAX_FREQ; ++i){
+		average+=mic_nb[i];
+	}
+	average = average/(FREQ_RANGE+1);
+	return average;
+}
+
+//Enregistre le son des micros
+void record_sound(void){
+	chprintf((BaseSequentialStream*)&SD3,"sound in %d\n");
+
+	//for(uint16_t i=0; i<NB_SAMPLES; ++i){
+	//	recorded_sound_1[i]=mean_sound(micRight_output);
+	//	recorded_sound_2[i]=mean_sound(micLeft_output);
+	//	recorded_sound_3[i]=mean_sound(micBack_output);
+	//}
+	chprintf((BaseSequentialStream*)&SD3,"sound done %d\n");
+
+}
+void locate_sound(void){
+
+}
 
 
 
@@ -185,12 +212,12 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
 		arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
 		arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
-
 		deux_microphones_a_proximite();
 
 
 		//sends only one FFT result over 10 for 1 mic to not flood the computer
 		//sends to UART3
+		/*
 		if(mustSend > 8){
 			//signals to send the result to the computer
 			chBSemSignal(&sendToComputer_sem);
@@ -198,8 +225,14 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		}
 		nb_samples = 0;
 		mustSend++;
-
+		*/
 		analyse_son(micLeft_output);
+
+		if(detection_son()){
+			chprintf((BaseSequentialStream*)&SD3,"sound 123132132 %d\n");
+			record_sound();
+			//locate_sound();
+		}
 	}
 }
 
