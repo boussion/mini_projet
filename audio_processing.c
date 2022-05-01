@@ -48,14 +48,12 @@ static float micBack_output[FFT_SIZE];
 
 
 // pour fixer l'amplitude à partir de laquelle on considère détecter une fréquence:
-#define AMPLITUDE_MIN 10000 // On pose amplitude min = 10 000  pour l'instant
+#define AMPLITUDE_MIN 40000 // Bruit dû au désequillibre du e-puck ne peut pas être prix en compte
 
 // Constantes neccessaires au fonctionnement du programme:
 static	int  son_detection = 0; // Signal qui indique si un bruit est détecté
 
 static uint16_t micro_a_proximite=0;
-
-
 
 
 
@@ -77,7 +75,6 @@ static void serial_start(void)
  *	float *data			Buffer contenant 1024 échantillons symétriques, soit 2*512 échantillons. Il correspond à un des 4 microphones.
  */
 void analyse_son(float* data){
-
 	int detection = 0; // On utilise une variables locale pour mettre à jour a variable statique
 	uint16_t amplitude_min = AMPLITUDE_MIN; // On initialise l'amplitude minimum à AMPLITUDE_MIN
 
@@ -85,7 +82,9 @@ void analyse_son(float* data){
 
 		if(data[i] > amplitude_min){ // Amplitude supérieure à 10 000 dans [864.5 Hz-1280.125 Hz]?
 			if((i>=FREQ_MVT_MIN) && (i<= FREQ_MVT_MAX)){ // Localisée dans la plage de fréquence : [984.375 Hz-1015.625 Hz]?
+				chprintf((BaseSequentialStream*)&SD3," Amplitude= %f", data[i]);
 				detection = 1; // Si on capte on met à 1 la valeur de Detection_son
+
 				break;
 
 			}else{
@@ -101,9 +100,9 @@ void analyse_son(float* data){
 
 	}else{
 		set_body_led(0);
-		}
-
 	}
+
+}
 
 /* detection_son: sort 1 si son détecté
  */
@@ -111,7 +110,7 @@ bool detection_son (void){
 
 	return son_detection;
 
-	}
+}
 
 
 
@@ -263,33 +262,33 @@ void deux_microphones_a_proximite(void){
 
 	}
 
-		if(detection_son()==1){
+	if(detection_son()==1){
 
-			if((moyenne_front > moyenne_back) && (moyenne_front > moyenne_right) && (moyenne_front > moyenne_left) && (moyenne_right > moyenne_left)){
-				micro_a_proximite = MIC_FRONT_RIGHT;
+		if((moyenne_front > moyenne_back) && (moyenne_front > moyenne_right) && (moyenne_front > moyenne_left) && (moyenne_right > moyenne_left)){
+			micro_a_proximite = MIC_FRONT_RIGHT;
+
+		}else{
+			if((moyenne_front > moyenne_back) && (moyenne_front > moyenne_right) && (moyenne_front > moyenne_left)){
+				micro_a_proximite = MIC_FRONT_LEFT;
 
 			}else{
-				if((moyenne_front > moyenne_back) && (moyenne_front > moyenne_right) && (moyenne_front > moyenne_left)){
-					micro_a_proximite = MIC_FRONT_LEFT;
+				if((moyenne_left > moyenne_right) && (moyenne_left > moyenne_back)){
+					micro_a_proximite = MIC_LEFT_BACK;
 
 				}else{
-						if((moyenne_left > moyenne_right) && (moyenne_left > moyenne_back)){
-							micro_a_proximite = MIC_LEFT_BACK;
+					micro_a_proximite = MIC_RIGHT_BACK;
 
-						}else{
-								micro_a_proximite = MIC_RIGHT_BACK;
-
-						}
-					}
 				}
-		}else{
-
-			micro_a_proximite=0;
+			}
 		}
+	}else{
 
-		chprintf((BaseSequentialStream*)&SD3,"micro = %d\n", micro_a_proximite);
-
+		micro_a_proximite=0;
 	}
+
+	//chprintf((BaseSequentialStream*)&SD3,"micro = %d\n", micro_a_proximite);
+
+}
 
 
 /*int16_t determination_angle_rotation(void){
@@ -318,7 +317,7 @@ void deux_microphones_a_proximite(void){
 	return angle_de_rotation;
 }
 
-*/
+ */
 
 
 
