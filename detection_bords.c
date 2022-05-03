@@ -22,7 +22,7 @@
 #define LIMITE_DETECTION 65536 // Maximum de uint16_t => 65536
 #define RAYON_CERCLE 200 // On considère un cercle de 40 cm de rayon
 #define LIMITE_DISTANCE 20 // On veut que le robot s'arrête à 5 mm du bord du cerle
-#define ERREUR_POSSIBLE 10
+#define ERREUR_POSSIBLE 20
 
 
 static int16_t distance_a_parcourir; // Distance à parcourir
@@ -94,6 +94,7 @@ uint16_t distance_centre(void){
 int16_t mise_a_jour_distance_actuelle(void){
 
 	distance_centre();
+
 	distance_bords();
 
 	if(detection_son()==1){

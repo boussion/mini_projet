@@ -70,19 +70,19 @@ static void serial_start(void)
 }
 
 
-/* analyse_son: Détecte un son de fréquence comprise entre 984.375 Hz et 1015.625 Hz. Si le son est détecté, il met à jour
+/* analyse_son: Detecte un son de frequence comprise entre 984.375 Hz et 1015.625 Hz. Si le son est détecte, il met à jour
  Paramètres :
- *	float *data			Buffer contenant 1024 échantillons symétriques, soit 2*512 échantillons. Il correspond à un des 4 microphones.
+ *	float *data			Buffer contenant 1024 echantillons symetriques, soit 2*512 echantillons. Il correspond a un des 4 microphones.
  */
 void analyse_son(float* data){
 	int detection = 0; // On utilise une variables locale pour mettre à jour a variable statique
 	uint16_t amplitude_min = AMPLITUDE_MIN; // On initialise l'amplitude minimum à AMPLITUDE_MIN
 
-	for(uint8_t i = MIN_FREQ; i <= MAX_FREQ ; i++){ // On parcourt la gamme de fréquence
+	for(uint8_t i = MIN_FREQ; i <= MAX_FREQ ; i++){ // On parcourt la gamme de frequence
 
 		if(data[i] > amplitude_min){ // Amplitude supérieure à 10 000 dans [864.5 Hz-1280.125 Hz]?
-			if((i>=FREQ_MVT_MIN) && (i<= FREQ_MVT_MAX)){ // Localisée dans la plage de fréquence : [984.375 Hz-1015.625 Hz]?
-				chprintf((BaseSequentialStream*)&SD3," Amplitude= %f", data[i]);
+			if((i>=FREQ_MVT_MIN) && (i<= FREQ_MVT_MAX)){ // Localisee dans la plage de frequence : [984.375 Hz-1015.625 Hz]?
+				//chprintf((BaseSequentialStream*)&SD3," Amplitude= %f", data[i]);
 				detection = 1; // Si on capte on met à 1 la valeur de Detection_son
 
 				break;

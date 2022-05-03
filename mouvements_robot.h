@@ -8,11 +8,15 @@
 #ifndef MOUVEMENTS_ROBOT_H_
 #define MOUVEMENTS_ROBOT_H_
 
-int32_t pi_regulator(uint16_t Kp, uint16_t Ki);
+int32_t p_regulator(uint16_t Kp);
 
-void pi_regulator_start(void);
+void p_regulator_start(void);
 
+bool detection_rotation(void);
 
+void rotation(void);
+
+bool range_angle_rotation(void);
 
 
 
