@@ -18,7 +18,7 @@
 #include <communications.h>
 #include <arm_math.h>
 
-// Constantes :
+
 #define LIMITE_DETECTION 65536 // Maximum de uint16_t => 65536
 #define RAYON_CERCLE 235 // On considère un cercle de 23,5 cm de rayon
 #define LIMITE_DISTANCE 15 // On veut que le robot s'arrête à 5 mm du bord du cerle
@@ -72,15 +72,11 @@ uint16_t distance_centre(void){
 
 	uint16_t dist = ajustement_dist();
 
-		//if((dist <= (RAYON_CERCLE+ERREUR_POSSIBLE))){
 		if((dist >= (RAYON_CERCLE-ERREUR_POSSIBLE)) && (dist <= (RAYON_CERCLE+ERREUR_POSSIBLE))){
 			distance_au_centre = 0;
 
 		}else{
 		distance_au_centre = (dist-RAYON_CERCLE);
-		//if (distance_au_centre<=0){
-		//	distance_au_centre=0;
-		//}
 
 		}
 
