@@ -31,11 +31,12 @@ static float micBack_output[FFT_SIZE];
 //pour fixer la fréquence d'utilisation du son dans le projet
 #define MIN_FREQ	115	// On n'analyse pas le bruit avant 1 796,875 Hz
 #define MAX_FREQ	140 	// On n'analyse pas le bruit après 2 187,5 Hz
-#define FREQ_RANGE (MAX_FREQ-MIN_FREQ)	//MAX_FREQ-MIN_FREQ
 
 #define FREQ_REF	128   // 2 000 Hz
 #define FREQ_MVT_MIN	(FREQ_REF-1) // 1 984,375 Hz
 #define FREQ_MVT_MAX 	(FREQ_REF+1) // 2 015.625 Hz
+#define FREQ_MVT_RANGE (FREQ_MVT_MAX-FREQ_MVT_MIN)	//MAX_FREQ-MIN_FREQ
+
 
 #define NB_ECHANTILLONS 10
 #define NB_ECHANTILLONS_DETECTES 5
@@ -57,9 +58,13 @@ static	int  son_detection = 0; // Signal qui indique si un bruit est détecté
 
 static uint16_t micro_a_proximite=0;
 
-static int recorded_sound_1[NB_SAMPLES];
-static int recorded_sound_2[NB_SAMPLES];
-static int recorded_sound_3[NB_SAMPLES];
+struct Mic_Record{
+	float Mic0;
+	float Mic1;
+	float Mic2;
+};
+static struct Mic_Record stored_mic[NB_SAMPLES];
+
 
 static void serial_start(void)
 {
@@ -115,12 +120,12 @@ bool detection_son (void){
 
 	}
 
-int mean_sound(float* mic_nb){
-	float average=0;
-	for(uint8_t i=MIN_FREQ; i<=MAX_FREQ; ++i){
-		average+=mic_nb[i];
+float mean_sound(float* mic_nb){
+	float average = 0;
+	for(uint8_t i = FREQ_MVT_MIN; i <= FREQ_MVT_MAX; ++i){
+		average = mic_nb[i] + average;
 	}
-	average = average/(FREQ_RANGE+1);
+	average = average/(FREQ_MVT_RANGE+1);
 	return average;
 }
 
@@ -163,6 +168,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 
 	static uint16_t nb_samples = 0;
 	static uint8_t mustSend = 0;
+	static uint16_t nb_record = 0;
 
 	//loop to fill the buffers
 	for(uint16_t i = 0 ; i < num_samples ; i+=4){
@@ -188,7 +194,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 	}
 
 	if(nb_samples >= (2 * FFT_SIZE)){
-		/*	FFT proccessing
+		/*	FFT processing
 		 *
 		 *	This FFT function stores the results in the input buffer given.
 		 *	This is an "In Place" function.
@@ -212,28 +218,37 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
 		arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
 		arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
-		deux_microphones_a_proximite();
+		//deux_microphones_a_proximite();
 
 
 		//sends only one FFT result over 10 for 1 mic to not flood the computer
 		//sends to UART3
-		/*
+
 		if(mustSend > 8){
 			//signals to send the result to the computer
-			chBSemSignal(&sendToComputer_sem);
+			//chBSemSignal(&sendToComputer_sem);
 			mustSend = 0;
 		}
 		nb_samples = 0;
 		mustSend++;
-		*/
+		if(nb_record == NB_SAMPLES){
+			nb_record = 0;
+		}
+		store_sound(nb_record);
+		nb_record++;
 		analyse_son(micLeft_output);
-
 		if(detection_son()){
+			locate_sound();
 			chprintf((BaseSequentialStream*)&SD3,"sound 123132132 %d\n");
-			record_sound();
 			//locate_sound();
 		}
 	}
+}
+
+void store_sound(uint16_t nb_record){
+	stored_mic[nb_record].Mic0 = mean_sound(micRight_output);
+	stored_mic[nb_record].Mic1 = mean_sound(micLeft_output);
+	stored_mic[nb_record].Mic2 = mean_sound(micBack_output);
 }
 
 void wait_send_to_computer(void){
@@ -352,13 +367,4 @@ void deux_microphones_a_proximite(void){
 }
 
 */
-
-
-
-
-
-
-
-
-
 

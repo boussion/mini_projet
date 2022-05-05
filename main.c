@@ -122,7 +122,7 @@ int main(void)
             //chprintf((BaseSequentialStream *) &SDU1, "time fft = %d us, time magnitude = %d us\n",time_fft, time_mag);
 
         }
-#endif  /* SEND_FROM_MIC */
+#endif  SEND_FROM_MIC */
     }
 }
 
