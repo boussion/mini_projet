@@ -20,9 +20,9 @@
 
 // Constantes :
 #define LIMITE_DETECTION 65536 // Maximum de uint16_t => 65536
-#define RAYON_CERCLE 200 // On considère un cercle de 40 cm de rayon
-#define LIMITE_DISTANCE 20 // On veut que le robot s'arrête à 5 mm du bord du cerle
-#define ERREUR_POSSIBLE 20
+#define RAYON_CERCLE 235 // On considère un cercle de 23,5 cm de rayon
+#define LIMITE_DISTANCE 15 // On veut que le robot s'arrête à 5 mm du bord du cerle
+#define ERREUR_POSSIBLE 10
 
 
 static int16_t distance_a_parcourir; // Distance à parcourir
@@ -37,7 +37,7 @@ uint16_t ajustement_dist(void) {
 
 	uint16_t dist_mm = VL53L0X_get_dist_mm() - 48; // Correction erreur
 
-	if( (dist_mm>=(LIMITE_DETECTION-6)) && (dist_mm<=LIMITE_DETECTION)){ // Le detecteur a une erreur de + ou -2 mm
+	if( (dist_mm>=(LIMITE_DETECTION-6))){ // Le detecteur a une erreur de + ou -2 mm
 		dist_mm=0;
 	}
 
@@ -52,7 +52,7 @@ uint16_t distance_bords(void){
 
 	uint16_t dist = ajustement_dist();
 
-		if((dist >= (LIMITE_DISTANCE-ERREUR_POSSIBLE)) && (dist <= (LIMITE_DISTANCE+ERREUR_POSSIBLE))){
+		if((dist <= (LIMITE_DISTANCE+ERREUR_POSSIBLE))){
 
 			distance_aux_bords = 0;
 
@@ -98,11 +98,9 @@ int16_t mise_a_jour_distance_actuelle(void){
 	distance_bords();
 
 	if(detection_son()==1){
-
 		distance_a_parcourir = distance_aux_bords;
 
 	}else{
-
 		distance_a_parcourir = distance_au_centre;
 
 	}

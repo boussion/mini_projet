@@ -12,16 +12,17 @@
 #include <usbcfg.h>
 #include <chprintf.h>
 #include <detection_bords.h>
+#include <detection_ligne.h>
 #include <audio_processing.h>
 
 #define RAYON_CERCLE 400 // On considère un cercle de 40 cm de rayon
 #define LIMITE_DISTANCE 5 // On veut que le robot s'arrête à 5 mm du bord du cerle
 #define ANGLE_OPPOSITION_BRUIT 360 //angle de 360 degres
 #define VARIATIONS_ANGLE 20 // on veut un nagle à +ou- 20 degres près
-#define VITESSE8ROTATION 50
-static uint16_t KP_centre=8;
+#define VITESSE_ROTATION 50
+static uint16_t KP_centre=10;
 
-static uint16_t KP_bords=8;
+static uint16_t KP_bords=10;
 
 static uint16_t Ki=0.7;
 
@@ -29,18 +30,6 @@ static int16_t angle_bruit=0;
 
 static uint16_t activation_rotation=0; //dépend d'une fonction qui donnera l'angle avec le bruit qui devra etre dans une range de 180 avec le bruit + si bruti detecté
 
-
-static void serial_start(void)
-{
-	static SerialConfig ser_cfg = {
-	    115200,
-	    0,
-	    0,
-	    0,
-	};
-
-	sdStart(&SD3, &ser_cfg); // UART3.
-}
 
 /* pi_regulator: Permet de détermienr la vitesse du robot e-puck
  Paramètres :
@@ -55,22 +44,36 @@ int32_t p_regulator(uint16_t Kp){
 
  error = mise_a_jour_distance_actuelle();
  somme_erreur=error+somme_erreur;
-
-
  speed = Kp*error + Ki*somme_erreur;
-
- //chprintf((BaseSequentialStream*)&SD3,"vitesse = %d\n", speed);
-
- //chprintf((BaseSequentialStream*)&SD3,"vitesse = %d\n", speed);
-
- //chprintf((BaseSequentialStream*)&SD3,"erreur = %d\n", somme_erreur);
-
- somme_erreur=error+somme_erreur;
-
 
  return speed;
 
 }
+
+
+int32_t p_regulator_line(uint16_t Kp){
+
+	 int16_t error = 0;
+	 int32_t speed = 0;
+
+	 static int16_t somme_erreur = 0;
+
+
+	 error = get_line_position_to_center_mm();
+
+	 //introduire une range pour éviter les beugs sur la rotation :
+
+	 somme_erreur=error+somme_erreur;
+	 speed = Kp*error + Ki*somme_erreur;
+	 //chprintf((BaseSequentialStream*)&SD3,"erreur = %d\n", somme_erreur);
+
+	 return speed;
+
+
+
+}
+
+
 
 static THD_WORKING_AREA(waPRegulator, 256);
 static THD_FUNCTION(PRegulator, arg) {
@@ -84,8 +87,6 @@ static THD_FUNCTION(PRegulator, arg) {
 
     while(1){
 
-    	//rotation();
-
     	time = chVTGetSystemTime();
         int16_t distance_a_parcourir = mise_a_jour_distance_actuelle();
 
@@ -96,8 +97,6 @@ static THD_FUNCTION(PRegulator, arg) {
 
         	}else{
         		speed = p_regulator(KP_bords);
-        		//speed = 0;
-
         	}
         }else{
         	if(distance_a_parcourir==0){
@@ -105,7 +104,6 @@ static THD_FUNCTION(PRegulator, arg) {
 
         	}else{
         		speed = p_regulator(KP_centre);
-        		//speed=0;
 
         	}
         }
@@ -147,12 +145,12 @@ bool range_angle_rotation(void){
 
 bool detection_rotation(void){
 
-	if(detection_bruit()!=0){
+	if(detection_son()!=0){
 		activation_rotation=0;
 
 	}else{
 
-		if( range_angle_rotation==1 ){
+		if( range_angle_rotation()==1 ){
 				 activation_rotation=0;
 
 		}else{
@@ -162,6 +160,7 @@ bool detection_rotation(void){
 
 		return activation_rotation;
 	}
+	return activation_rotation;
 }
 
 /*
@@ -172,10 +171,10 @@ void rotation(void){
 
 	if( detection_rotation()==1 ){
 
-		while (range_angle_rotation!=0){
+		while (range_angle_rotation()!=0){
 
-			left_motor_set_speed(50); // si positif > 0 rotation gauche / si negatif < 0 rotation droite
-			right_motor_set_speed(-50);
+			left_motor_set_speed(VITESSE_ROTATION); // si positif > 0 rotation gauche / si negatif < 0 rotation droite
+			right_motor_set_speed(VITESSE_ROTATION);
 		}
 	}
 }

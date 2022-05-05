@@ -19,12 +19,21 @@
 #include <arm_math.h>
 #include <detection_bords.h>
 #include <mouvements_robot.h>
+#include <detection_ligne.h>
 
 //uncomment to send the FFTs results from the real microphones
 #define SEND_FROM_MIC
 
 //uncomment to use double buffering to send the FFT to the computer
 //#define DOUBLE_BUFFERING
+
+//Pour faire fonctionner la caméra
+void SendUint8ToComputer(uint8_t* data, uint16_t size)
+{
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)&size, sizeof(uint16_t));
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)data, size);
+}
 
 static void serial_start(void)
 {
@@ -64,14 +73,20 @@ int main(void)
     //starts the serial communication
     serial_start();
     //starts the USB communication
-    usb_start();
+    //usb_start();
     //starts timer 12
     timer12_start();
     //inits the motors
     motors_init();
     //starts VL53L0X
     VL53L0X_start();
-    pi_regulator_start();
+    //starts PI regulator
+    p_regulator_start();
+    //starts camera
+    dcmi_start();
+    po8030_start();
+
+    process_image_start();
 
 
     //temp tab used to store values in complex_float format
@@ -88,8 +103,11 @@ int main(void)
 
     /* Infinite loop. */
     while (1) {
+    	chThdSleepMilliseconds(500);
 
 
+
+    	//chprintf((BaseSequentialStream *) &SD3, "time = %d\n",chVTGetSystemTime());
 
 /* #ifdef SEND_FROM_MIC
         //waits until a result must be sent to the computer
@@ -122,7 +140,7 @@ int main(void)
             //chprintf((BaseSequentialStream *) &SDU1, "time fft = %d us, time magnitude = %d us\n",time_fft, time_mag);
 
         }
-#endif  /* SEND_FROM_MIC */
+#endif SEND_FROM_MIC */
     }
 }
 

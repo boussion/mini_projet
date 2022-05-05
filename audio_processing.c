@@ -10,6 +10,7 @@
 #include <communications.h>
 #include <fft.h>
 #include <arm_math.h>
+#include <leds.h>
 
 //semaphore
 static BSEMAPHORE_DECL(sendToComputer_sem, TRUE);
@@ -55,19 +56,6 @@ static	int  son_detection = 0; // Signal qui indique si un bruit est détecté
 
 static uint16_t micro_a_proximite=0;
 
-
-
-static void serial_start(void)
-{
-	static SerialConfig ser_cfg = {
-			115200,
-			0,
-			0,
-			0,
-	};
-
-	sdStart(&SD3, &ser_cfg); // UART3.
-}
 
 
 /* analyse_son: Detecte un son de frequence comprise entre 984.375 Hz et 1015.625 Hz. Si le son est détecte, il met à jour

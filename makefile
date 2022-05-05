@@ -15,6 +15,7 @@ CSRC += ./main.c \
 		./fft.c \
 		./detection_bords.c\
 		./mouvements_robot.c\
+		./detection_ligne.c\
 
 #Header folders to include
 INCDIR += 
