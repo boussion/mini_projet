@@ -10,6 +10,8 @@
 #include <communications.h>
 #include <fft.h>
 #include <arm_math.h>
+#include <locate_sound.h>
+
 
 //semaphore
 static BSEMAPHORE_DECL(sendToComputer_sem, TRUE);
@@ -41,7 +43,7 @@ static float micBack_output[FFT_SIZE];
 #define NB_ECHANTILLONS 10
 #define NB_ECHANTILLONS_DETECTES 5
 
-#define NB_SAMPLES 50 //Nb de samples enregistrés pour localiser le son
+#define NB_SAMPLES 100 //Nb de samples enregistrés pour localiser le son
 
 #define MIC_FRONT_RIGHT 1
 #define MIC_FRONT_LEFT 2
@@ -58,13 +60,7 @@ static	int  son_detection = 0; // Signal qui indique si un bruit est détecté
 
 static uint16_t micro_a_proximite=0;
 
-struct Mic_Record{
-	float Mic0;
-	float Mic1;
-	float Mic2;
-};
 static struct Mic_Record stored_mic[NB_SAMPLES];
-
 
 static void serial_start(void)
 {
@@ -114,7 +110,7 @@ void analyse_son(float* data){
 
 /* detection_son: sort 1 si son détecté
  */
-bool detection_son (void){
+bool detection_son(void){
 
 	return son_detection;
 
@@ -141,10 +137,6 @@ void record_sound(void){
 	chprintf((BaseSequentialStream*)&SD3,"sound done %d\n");
 
 }
-void locate_sound(void){
-
-}
-
 
 
 /*
@@ -221,6 +213,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		//deux_microphones_a_proximite();
 
 
+
 		//sends only one FFT result over 10 for 1 mic to not flood the computer
 		//sends to UART3
 
@@ -234,21 +227,29 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		if(nb_record == NB_SAMPLES){
 			nb_record = 0;
 		}
+		//chprintf((BaseSequentialStream*)&SD3,"sound record: %d\n", nb_record, "%d\n");
 		store_sound(nb_record);
 		nb_record++;
 		analyse_son(micLeft_output);
 		if(detection_son()){
-			locate_sound();
-			chprintf((BaseSequentialStream*)&SD3,"sound 123132132 %d\n");
-			//locate_sound();
+			float direction;
+			//chprintf((BaseSequentialStream*)&SD3,"sound direction: %d\n", nb_record, "%d\n");
+
+			direction=get_sound_direction(stored_mic);
+			chprintf((BaseSequentialStream*)&SD3,"direction: %f\n", direction);
+
 		}
 	}
 }
 
+void move_round(float direction){
+
+}
+
 void store_sound(uint16_t nb_record){
-	stored_mic[nb_record].Mic0 = mean_sound(micRight_output);
-	stored_mic[nb_record].Mic1 = mean_sound(micLeft_output);
-	stored_mic[nb_record].Mic2 = mean_sound(micBack_output);
+	stored_mic[nb_record].Mic0 = max_sound(micRight_output);
+	stored_mic[nb_record].Mic1 = max_sound(micLeft_output);
+	stored_mic[nb_record].Mic2 = max_sound(micBack_output);
 }
 
 void wait_send_to_computer(void){
