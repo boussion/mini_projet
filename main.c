@@ -80,8 +80,8 @@ int main(void)
     motors_init();
     //starts VL53L0X
     VL53L0X_start();
-    //starts PI regulator
-    p_regulator_start();
+    //starts moving
+    movements_start();
     //starts camera
     dcmi_start();
     po8030_start();

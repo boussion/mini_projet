@@ -22,12 +22,7 @@
 #define ERROR_THRESHOLD			0.1f	//[cm] because of the noise of the camera
 #define NB_LINES   				2
 
-static int16_t line1_position=0;
-static int16_t line2_position=0;
-static int16_t line1_end =0;
-static int16_t middle_distance_btw_lines =0;
-
-
+static int16_t line_position=0;
 
 
 //semaphore
@@ -109,121 +104,17 @@ void extract_line1_position(uint8_t *buffer){
 			position = (begin + end)/2; //gives the line position.
 		}
 
-		line1_position = position;
-		line1_end = end;
+		line_position = position;
 
 		}
 
-/*
- * extract_line2_position : update the static variable line2_position with the position of line 2
- */
-void extract_line2_position(uint8_t *buffer ){
+int16_t get_line_position(void){
 
-	uint16_t i = line1_end, begin = 0, end = 0;
-	uint8_t stop = 0, wrong_line = 0, line_not_found = 0;
-	uint32_t mean = 0;
-
-	int16_t position =0;
-
-
-	//performs an average
-		for(uint16_t i = 0 ; i < IMAGE_BUFFER_SIZE ; i++){
-			mean += buffer[i];
-		}
-		mean /= IMAGE_BUFFER_SIZE;
-
-		do{
-			wrong_line = 0;
-			//search for a begin
-			while(stop == 0 && i < (IMAGE_BUFFER_SIZE - WIDTH_SLOPE))
-			{
-				//the slope must at least be WIDTH_SLOPE wide and is compared
-			    //to the mean of the image
-			    if(buffer[i] > mean && buffer[i+WIDTH_SLOPE] < mean)
-			    {
-			        begin = i;
-			        stop = 1;
-			    }
-			    i++;
-			}
-			//if a begin was found, search for an end
-			if (i < (IMAGE_BUFFER_SIZE - WIDTH_SLOPE) && begin)
-			{
-			    stop = 0;
-
-			    while(stop == 0 && i < IMAGE_BUFFER_SIZE)
-			    {
-			        if(buffer[i] > mean && buffer[i-WIDTH_SLOPE] < mean)
-			        {
-			            end = i;
-			            stop = 1;
-			        }
-			        i++;
-			    }
-			    //if an end was not found
-			    if (i > IMAGE_BUFFER_SIZE || !end)
-			    {
-			        line_not_found = 1;
-			    }
-			}
-			else//if no begin was found
-			{
-			    line_not_found = 1;
-			}
-
-			//if a line too small has been detected, continues the search
-			if(!line_not_found && (end-begin) < MIN_LINE_WIDTH){
-				i = end;
-				begin = 0;
-				end = 0;
-				stop = 0;
-				wrong_line = 1;
-			}
-
-		}while(wrong_line);
-
-		if(line_not_found){
-			begin = 0;
-			end = 0;
-		}else{
-
-			position = (begin + end)/2; //gives the line position.
-		}
-
-		line2_position = position;
-
-		}
-
-/*
- * middle_distance_lines : update the static variable middle_distance_btw_lines with the position of the centre between the two lines
- */
-void middle_distance_lines(void){
-	middle_distance_btw_lines=(line2_position + line1_position)/2;
+	return line_position;
 }
 
-/*
- * error_center_vs_middle : gives the error between the centre of the camera and the centre of the two lines as output
- */
-int16_t error_center_vs_middle(void){
 
-	int16_t error=0;
-	error=CENTER_PIXEL-middle_distance_btw_lines;
 
-	return error;
-}
-
-/*
- * capture : exit true if two lines have been detected otherwise exit false
- */
-bool capture(void){
-
-	if(line2_position==0 || line1_position==0){
-		return 0;
-	}else{
-		return 1;
-	}
-
-}
 
 static THD_WORKING_AREA(waCaptureImage, 256);
 static THD_FUNCTION(CaptureImage, arg) {
@@ -273,20 +164,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 			image[i/2] = (uint8_t)((img_buff_ptr[i]&0xF8));
 		}
 
-		//search for a line in the image and gets its width in pixels
-		//lineWidth = extract_line_width(image);
+		//regular call of the function to update the static position variable
 		extract_line1_position(image);
-		extract_line2_position(image);
-		middle_distance_lines();
 
-		chprintf((BaseSequentialStream*)&SD3,"lignes= %d", capture());
-		chprintf((BaseSequentialStream*)&SD3,"erreur = %d", error_center_vs_middle());
-		chprintf((BaseSequentialStream*)&SD3,"middle = %d", middle_distance_btw_lines);
-
-
+		// for test with the python scrypt
 		if(send_to_computer){
 			//sends to the computer the image
-			//SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
+		SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
 		}
 		//invert the bool
 		send_to_computer = !send_to_computer;

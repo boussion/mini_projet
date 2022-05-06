@@ -8,11 +8,19 @@
 #ifndef MOUVEMENTS_ROBOT_H_
 #define MOUVEMENTS_ROBOT_H_
 
-int32_t p_regulator(uint16_t Kp);
 
-void p_regulator_start(void);
+/*
+ *  pi_regulator_long: allows you to determine a forward or backward speed of the robot
+ */
+int32_t pi_regulator_long(void);
+
+
+
+void movements_start(void);
 
 bool detection_rotation(void);
+
+void line_centering(void);
 
 void rotation(void);
 

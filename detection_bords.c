@@ -20,9 +20,9 @@
 
 
 #define LIMITE_DETECTION 65536 // Maximum de uint16_t => 65536
-#define RAYON_CERCLE 235 // On considère un cercle de 23,5 cm de rayon
-#define LIMITE_DISTANCE 15 // On veut que le robot s'arrête à 5 mm du bord du cerle
-#define ERREUR_POSSIBLE 10
+#define RAYON_CERCLE 180 // On considère un cercle de 23,5 cm de rayon
+#define LIMITE_DISTANCE 20 // On veut que le robot s'arrête à 5 mm du bord du cerle
+#define ERREUR_POSSIBLE 20
 
 
 static int16_t distance_a_parcourir; // Distance à parcourir
@@ -48,9 +48,9 @@ uint16_t ajustement_dist(void) {
 
 /* distance_son: Mets à jour la distance qui reste à parcourir pour atteindre les bords et la retourne
  */
-uint16_t distance_bords(void){
+int16_t distance_bords(void){
 
-	uint16_t dist = ajustement_dist();
+	int16_t dist = ajustement_dist();
 
 		if((dist <= (LIMITE_DISTANCE+ERREUR_POSSIBLE))){
 
@@ -68,9 +68,9 @@ uint16_t distance_bords(void){
 
 /* distance_centre: Mets à jour la distance qui reste à parcourir pour atteindre le centre et la retourne
  */
-uint16_t distance_centre(void){
+int16_t distance_centre(void){
 
-	uint16_t dist = ajustement_dist();
+	int16_t dist = ajustement_dist();
 
 		if((dist >= (RAYON_CERCLE-ERREUR_POSSIBLE)) && (dist <= (RAYON_CERCLE+ERREUR_POSSIBLE))){
 			distance_au_centre = 0;
