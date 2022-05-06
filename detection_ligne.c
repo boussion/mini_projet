@@ -29,9 +29,9 @@ static int16_t line_position=0;
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 
 /*
- * extract_line1_position : update the static variable line1_position with the position of line 1
+ * extract_line_position : update the static variable line1_position with the position of line 1
  */
-void extract_line1_position(uint8_t *buffer){
+void extract_line_position(uint8_t *buffer){
 
 	uint16_t i = 0, begin = 0, end = 0;
 	uint8_t stop = 0, wrong_line = 0, line_not_found = 0;
@@ -100,22 +100,23 @@ void extract_line1_position(uint8_t *buffer){
 			begin = 0;
 			end = 0;
 		}else{
-
 			position = (begin + end)/2; //gives the line position.
 		}
 
 		line_position = position;
 
 		}
-
+/*
+ * get_line_position : returns the value in the static variable line_position for use in another file
+ */
 int16_t get_line_position(void){
 
 	return line_position;
 }
 
-
-
-
+/*
+ * CaptureImage : allows you to capture an image
+ */
 static THD_WORKING_AREA(waCaptureImage, 256);
 static THD_FUNCTION(CaptureImage, arg) {
 
@@ -138,7 +139,9 @@ static THD_FUNCTION(CaptureImage, arg) {
     }
 }
 
-
+/*
+ * ProcessImage : extracting the red pixels and calling the position extraction function
+ */
 static THD_WORKING_AREA(waProcessImage, 1024);
 static THD_FUNCTION(ProcessImage, arg) {
 
@@ -165,8 +168,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 
 		//regular call of the function to update the static position variable
-		extract_line1_position(image);
-
+		extract_line_position(image);
+/*
 		// for test with the python scrypt
 		if(send_to_computer){
 			//sends to the computer the image
@@ -174,6 +177,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 		//invert the bool
 		send_to_computer = !send_to_computer;
+		*/
     }
 }
 

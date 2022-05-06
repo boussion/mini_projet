@@ -28,11 +28,12 @@ static float micBack_output[FFT_SIZE];
 
 #define MIN_VALUE_THRESHOLD	10000 
 
-// Constantes:
-//pour fixer la fréquence d'utilisation du son dans le projet
-#define MIN_FREQ	115	// On n'analyse pas le bruit avant 1 796,875 Hz
-#define MAX_FREQ	140 	// On n'analyse pas le bruit après 2 187,5 Hz
 
+// Bandpass filter:
+#define MIN_FREQ	115	// no sound detected before 1 796,875 Hz
+#define MAX_FREQ	140 // no sound detected after 2 187,5 Hz
+
+// Frequencies studied:
 #define FREQ_REF	128   // 2 000 Hz
 #define FREQ_MVT_MIN	(FREQ_REF-1) // 1 984,375 Hz
 #define FREQ_MVT_MAX 	(FREQ_REF+1) // 2 015.625 Hz
@@ -47,60 +48,56 @@ static float micBack_output[FFT_SIZE];
 #define MIC_RIGHT_BACK 4
 #define NO_MIC 0
 
+// To set the amplitude at which a frequency is considered to be detected:
+#define AMPLITUDE_MIN 40000 // avoids detection of shocks to the structure
 
-// pour fixer l'amplitude à partir de laquelle on considère détecter une fréquence:
-#define AMPLITUDE_MIN 40000 // Bruit dû au désequillibre du e-puck ne peut pas être prix en compte
+// Sound detection:
+static	int  son_detection = 0; // Signal that indicates whether noise is detected
+//static uint16_t micro_a_proximite=0;
 
-// Constantes neccessaires au fonctionnement du programme:
-static	int  son_detection = 0; // Signal qui indique si un bruit est détecté
-
-static uint16_t micro_a_proximite=0;
-
-
-
-/* analyse_son: Detecte un son de frequence comprise entre 984.375 Hz et 1015.625 Hz. Si le son est détecte, il met à jour
+/* sound_analysis: Detects a sound frequency between 1984.375 Hz and 2015.625 Hz and updates the static variable
  Paramètres :
- *	float *data			Buffer contenant 1024 echantillons symetriques, soit 2*512 echantillons. Il correspond a un des 4 microphones.
+ *	float *data			Buffer containing 1024 symmetrical samples, that is 2*512 samples. It corresponds to one of the 4 microphones.
  */
-void analyse_son(float* data){
-	int detection = 0; // On utilise une variables locale pour mettre à jour a variable statique
-	uint16_t amplitude_min = AMPLITUDE_MIN; // On initialise l'amplitude minimum à AMPLITUDE_MIN
+void sound_analysis(float* data){
+	int detection = 0; // use a local variable to update a static variable
 
-	for(uint8_t i = MIN_FREQ; i <= MAX_FREQ ; i++){ // On parcourt la gamme de frequence
+	// scans the frequency range
+	for(uint8_t i = MIN_FREQ; i <= MAX_FREQ ; i++){
 
-		if(data[i] > amplitude_min){ // Amplitude supérieure à 10 000 dans [864.5 Hz-1280.125 Hz]?
-			if((i>=FREQ_MVT_MIN) && (i<= FREQ_MVT_MAX)){ // Localisee dans la plage de frequence : [984.375 Hz-1015.625 Hz]?
-				//chprintf((BaseSequentialStream*)&SD3," Amplitude= %f", data[i]);
-				detection = 1; // Si on capte on met à 1 la valeur de Detection_son
+		// search for an amplitude above a threshold
+		if(data[i] > AMPLITUDE_MIN){
 
+			if((i>=FREQ_MVT_MIN) && (i<= FREQ_MVT_MAX)){
+				detection = 1; // sound_detetected
 				break;
 
 			}else{
-				detection = 0; // Doit être dans [984.375 Hz-1015.625 Hz]
+				detection = 0; // sound_not_detected
 			}
 		}
 	}
 
+	// update static variable
 	son_detection = detection;
 
-	if(son_detection==1){ // Si le son est détecté
+	// turn on the body leds if frequency detected
+	if(son_detection==1){
 		set_body_led(1);
 
 	}else{
 		set_body_led(0);
-	}
 
+	}
 }
 
-/* detection_son: sort 1 si son détecté
+/* sound_detection : allows you to indicate the detection of a sound in another file
  */
-bool detection_son (void){
+bool sound_detection (void){
 
 	return son_detection;
 
 }
-
-
 
 /*
  *	Callback called when the demodulation of the four microphones is done.
@@ -159,8 +156,6 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		doFFT_optimized(FFT_SIZE, micFront_cmplx_input);
 		doFFT_optimized(FFT_SIZE, micBack_cmplx_input);
 
-
-
 		/*	Magnitude processing
 		 *
 		 *	Computes the magnitude of the complex numbers and
@@ -173,9 +168,6 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
 		arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
 
-		deux_microphones_a_proximite();
-
-
 		//sends only one FFT result over 10 for 1 mic to not flood the computer
 		//sends to UART3
 		if(mustSend > 8){
@@ -186,7 +178,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		nb_samples = 0;
 		mustSend++;
 
-		analyse_son(micLeft_output);
+		sound_analysis(micLeft_output);
 	}
 }
 
@@ -225,10 +217,12 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 }
 
 
+
 /*
  *	deux_microphones_a_proximite: permet de déterminer les deux microphones les plus proches de la provenance du bruit en mettant à jour la variable statique micro_a_proximite
  */
 
+/*
 void deux_microphones_a_proximite(void){
 
 	uint16_t moyenne_front = 0;
@@ -265,54 +259,12 @@ void deux_microphones_a_proximite(void){
 
 				}else{
 					micro_a_proximite = MIC_RIGHT_BACK;
-
 				}
 			}
 		}
 	}else{
-
 		micro_a_proximite=0;
 	}
-
-	//chprintf((BaseSequentialStream*)&SD3,"micro = %d\n", micro_a_proximite);
-
 }
-
-
-/*int16_t determination_angle_rotation(void){
-
-	int16_t angle_de_rotation = 0;
-
-	if (micro_a_proximite==1){
-		angle_de_rotation=-225;
-	}
-
-	if (micro_a_proximite==2){
-		angle_de_rotation=225;
-	}
-
-	if (micro_a_proximite==3){
-		angle_de_rotation=135;
-		}
-
-	if (micro_a_proximite==4){
-		angle_de_rotation=-135;
-		}
-
-	if (micro_a_proximite==0){
-		angle_de_rotation=à;
-			}
-	return angle_de_rotation;
-}
-
- */
-
-
-
-
-
-
-
-
-
+*/
 

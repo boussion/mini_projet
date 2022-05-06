@@ -15,9 +15,7 @@
 #include <detection_ligne.h>
 #include <audio_processing.h>
 
-#define RAYON_CERCLE 470 // On considère un cercle de 40 cm de rayon
-#define LIMITE_DISTANCE 5 // On veut que le robot s'arrête à 5 mm du bord du cerle
-#define VARIATIONS_ANGLE 20 // on veut un nagle à +ou- 20 degres près
+
 #define ROTATION_THRESHOLD 50
 #define ERROR_THRESHOLD  10
 #define ROTATION_COEFF 0.25
@@ -30,23 +28,24 @@
 
 
 
-
 /*
- *  pi_regulator_long: allows you to determine a forward or backward speed of the robot
+ *  pi_regulator_long: allows to determine a forward or backward speed of the robot
  */
-int32_t pi_regulator_long(void){
+int32_t pi_regulator(void){
 
-	//Enter the value of the error that depends on the sound detection
-	int16_t error = mise_a_jour_distance_actuelle();
+	//The error takes the value of update_distance()
+	int16_t error = update_distance();
 	float speed = 0;
 	static float sum_error = 0;
 
+	/*
 	//disables the PI regulator if the error is to small
 	//this avoids to always move as we cannot exactly be where we want and
 	//the camera is a bit noisy
 	if(abs(error) < ERROR_THRESHOLD){
 		return 0;
 	}
+	*/
 
 	sum_error += error;
 
@@ -57,14 +56,15 @@ int32_t pi_regulator_long(void){
 		sum_error = -MAX_SUM_ERROR;
 	}
 
+	//speed calculation
 	speed = KP * error + KI * sum_error;
 
 	return (int16_t)speed;
 }
 
-
-
-
+/*
+ * PRegulator : allows the update of the speed of the motors with the pi regulator
+ */
 
 static THD_WORKING_AREA(waPRegulator, 256);
 static THD_FUNCTION(PRegulator, arg) {
@@ -73,53 +73,41 @@ static THD_FUNCTION(PRegulator, arg) {
     (void)arg;
 
     	    systime_t time;
-
     	    int16_t speed = 0;
     	    int16_t speed_correction = 0;
 
-
     	    while(1){
+
+    	    	//We recover the time of the system
     	        time = chVTGetSystemTime();
 
-
-
-    	        //computes the speed to give to the motors
-    	        //distance_cm is modified by the image processing thread
-    	        speed = pi_regulator_long();
-
-
-    	        //if(detection_son()==1){
-    	        	speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
-    	       // }else{
-    	        //	speed_correction=0;
-    	       // }
-
-    	        //computes a correction factor to let the robot rotate to be in front of the line
-
+    	        //computes the speed to give to the motors using the pi-regulator
+    	        speed = pi_regulator();
+    	        //speed correction according to the position of the line to let the robot rotate to be in front of the line
+    	        speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
+    	        //speed_correction=0;
 
     	        //if the line is nearly in front of the camera, don't rotate
+    	        //need to correct this value to allow the good recognition of the line
     	        if(abs(speed_correction) < ROTATION_THRESHOLD){
     	        	speed_correction = 0;
     	        }
 
-
-    	       // chprintf((BaseSequentialStream*)&SD3,"correction = %ld", test);
-    	        //chprintf((BaseSequentialStream*)&SD3,"position ligne = %ld", get_line_position());
-
-				//applies the speed from the PI regulator and the correction for the rotation
+				//applies the speed from the PI regulator and the correction for the rotation on the motors
 				right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
 				left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
 
-
-    		//chprintf((BaseSequentialStream*)&SD3,"error = %ld", distance_centre());
-    		//chprintf((BaseSequentialStream*)&SD3,"capture = %ld", capture());
-
+				//chprintf((BaseSequentialStream*)&SD3,"error = %ld", distance_centre());
+				//chprintf((BaseSequentialStream*)&SD3,"capture = %ld", capture());
 
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
     }
 }
 
+/*
+ * movements_start : allows the activation of the PRegulator thread
+ */
 void movements_start(void){
 	chThdCreateStatic(waPRegulator, sizeof(waPRegulator), NORMALPRIO, PRegulator, NULL);
 }

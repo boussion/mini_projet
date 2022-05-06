@@ -7,7 +7,6 @@
 
 #include "sensors/VL53L0X/VL53L0X.h"
 
-
 #include "ch.h"
 #include "hal.h"
 #include <main.h>
@@ -19,90 +18,87 @@
 #include <arm_math.h>
 
 
-#define LIMITE_DETECTION 65536 // Maximum de uint16_t => 65536
-#define RAYON_CERCLE 180 // On considère un cercle de 23,5 cm de rayon
-#define LIMITE_DISTANCE 20 // On veut que le robot s'arrête à 5 mm du bord du cerle
-#define ERREUR_POSSIBLE 20
+#define LIMITE_DETECTION 65536 // maximum uint16_t => 65536
+#define RAYON_CERCLE 180 // we consider a circle of radius 18 centimetres
+#define LIMITE_DISTANCE 20 // robot must stop 5 mm from the edge of the circle
+#define ERREUR_POSSIBLE 20 // error threshold
+#define CORRECTION_FACTOR 48
+
+// Static values to represent the different distances:
+static int16_t distance_to_travel;
+static int16_t distance_to_edges;
+static int16_t distance_from_center;
 
 
-static int16_t distance_a_parcourir; // Distance à parcourir
-static int16_t distance_aux_bords; // Distance à parcourir jusqu'aux bords
-static int16_t distance_au_centre; // Distance à parcourir pour retourner au centre
-
-
-/* ajustement_dist: Permet d'ajuster les valeurs données par le capteur de distance
+/*
+ * adjustement_dist: Used to return the adjusted distance given by sensor
  */
+uint16_t adjustement_dist(void) {
 
-uint16_t ajustement_dist(void) {
+	uint16_t dist_mm = VL53L0X_get_dist_mm() - CORRECTION_FACTOR; //correction of the error
 
-	uint16_t dist_mm = VL53L0X_get_dist_mm() - 48; // Correction erreur
-
-	if( (dist_mm>=(LIMITE_DETECTION-6))){ // Le detecteur a une erreur de + ou -2 mm
+	// avoid distance overflow due to sensor instability
+	if( (dist_mm>=(LIMITE_DETECTION-6))){
 		dist_mm=0;
 	}
-
 	return dist_mm;
-
 }
 
-
-/* distance_son: Mets à jour la distance qui reste à parcourir pour atteindre les bords et la retourne
+/*
+ * edge_distance: Update the remaining distance to the edges and return it
  */
-int16_t distance_bords(void){
+int16_t edge_distance(void){
 
-	int16_t dist = ajustement_dist();
+	int16_t dist = adjustement_dist();
 
-		if((dist <= (LIMITE_DISTANCE+ERREUR_POSSIBLE))){
-
-			distance_aux_bords = 0;
-
-		}else{
-
-		distance_aux_bords = dist;
-
-	}
-
-	return distance_aux_bords;
-
-}
-
-/* distance_centre: Mets à jour la distance qui reste à parcourir pour atteindre le centre et la retourne
- */
-int16_t distance_centre(void){
-
-	int16_t dist = ajustement_dist();
-
-		if((dist >= (RAYON_CERCLE-ERREUR_POSSIBLE)) && (dist <= (RAYON_CERCLE+ERREUR_POSSIBLE))){
-			distance_au_centre = 0;
-
-		}else{
-		distance_au_centre = (dist-RAYON_CERCLE);
-
-		}
-
-
-	return distance_au_centre;
-
-}
-
-/* mise_a_jour_distance_actuelle: Mets à jour la distance qui reste à parcourir en fonction de la détection du son et la retourne
- */
-int16_t mise_a_jour_distance_actuelle(void){
-
-	distance_centre();
-
-	distance_bords();
-
-	if(detection_son()==1){
-		distance_a_parcourir = distance_aux_bords;
+	//if the distance is less than the stopping distance in front of the edges + error range taken into account => distance to travel =0
+	if((dist <= (LIMITE_DISTANCE+ERREUR_POSSIBLE))){
+		distance_to_edges = 0;
 
 	}else{
-		distance_a_parcourir = distance_au_centre;
+		distance_to_edges = dist;
 
 	}
+	return distance_to_edges;
+}
 
-	return distance_a_parcourir;
+/*
+ *  centre_distance: Update the distance to the centre and return it
+ */
+int16_t centre_distance(void){
 
+	int16_t dist = adjustement_dist();
+
+	//if the sensor is in the centre at more or less POSSIBLE_ERROR
+	if((dist >= (RAYON_CERCLE-ERREUR_POSSIBLE)) && (dist <= (RAYON_CERCLE+ERREUR_POSSIBLE))){
+		distance_from_center = 0;
+
+	}else{
+		distance_from_center = (dist-RAYON_CERCLE);
+
+	}
+	return distance_from_center;
+}
+
+/*
+ * update_distance: Updates the remaining distance based on the sound detection and returns it
+ */
+int16_t update_distance(void){
+
+	//update static values
+	centre_distance();
+	edge_distance();
+
+	//if sound detected => robot reachs the edges
+	if(sound_detection()==1){
+		distance_to_travel = distance_to_edges;
+
+	//if sound not detected => robot stays in the centre
+	}else{
+		distance_to_travel = distance_from_center;
+
+	}
+	return distance_to_travel;
 }
 
 

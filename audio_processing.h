@@ -17,13 +17,15 @@ typedef enum {
 	BACK_OUTPUT
 } BUFFER_NAME_t;
 
-void analyse_son(float* data);
+/* sound_analysis: Detects a sound frequency between 1984.375 Hz and 2015.625 Hz and updates the static variable
+ */
+void sound_analysis(float* data);
 
-bool detection_son (void);
+/* sound_detection : allows you to indicate the detection of a sound in another file
+ */
+bool sound_detection (void);
 
 void processAudioData(int16_t *data, uint16_t num_samples);
-
-uint16_t correction_detection_son(void);
 
 /*
 *	put the invoking thread into sleep until it can process the audio datas
@@ -35,7 +37,7 @@ void wait_send_to_computer(void);
 */
 float* get_audio_buffer_ptr(BUFFER_NAME_t name);
 
-void deux_microphones_a_proximite(void);
+//void deux_microphones_a_proximite(void);
 
 //int16_t determination_angle_rotation(void);
 

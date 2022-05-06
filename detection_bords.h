@@ -9,21 +9,25 @@
 #define DETECTION_BORDS_H_
 
 
-/* Ajustement_dist_mm: Permet d'ajuster les valeurs trouvées
+/*
+ * adjustement_dist: Used to return the adjusted distance given by sensor
  */
-uint16_t ajustement_dist(void);
+uint16_t adjustement_dist(void);
 
-/* distance_bords: Mets à jour la distance qui reste à parcourir pour atteindre les bords et la retourne
+/*
+ * edge_distance: Update the remaining distance to the edges and return it
  */
-uint16_t distance_bords(void);
+uint16_t edge_distance(void);
 
-/* distance_centre: Mets à jour la distance qui reste à parcourir pour atteindre le centre et la retourne
+/*
+ *  centre_distance: Update the distance to the centre and return it
  */
-uint16_t distance_centre(void);
+int16_t centre_distance(void);
 
-/* mise_a_jour_distance_actuelle: Mets à jour la distance qui reste à parcourir en fonction de la détection du son et la retourne
+/*
+ * update_distance: Updates the remaining distance based on the sound detection and returns it
  */
-int16_t mise_a_jour_distance_actuelle(void);
+int16_t update_distance(void);
 
 
 #endif /* DETECTION_BORDS_H_ */
