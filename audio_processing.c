@@ -247,11 +247,12 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 			float direction2;
 			direction2 = rad_to_deg(direction);
 			if(direction2 < 50){
-				chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO LOOOOOWWW %d\r\n");
+				//chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO LOOOOOWWW %d\r\n");
+				direction2=50;
 			}
 			if(direction2>140){
-				chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO HIGGGHHHH %d\r\n");
-				direction2=90;
+				//chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO HIGGGHHHH %d\r\n");
+				direction2 = 140;
 			}
 			direction2=adjust_deg(direction2);
 			sum_dir = sum_dir + direction2;
@@ -262,7 +263,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 			++ooo;
 			if(ooo > 4){
 				//chprintf((BaseSequentialStream*)&SD3,"ooo: %d\r\n", ooo);
-				chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", sum_dir/5);
+				//chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", sum_dir/5);
 				ooo = 0;
 				sum_dir = 0;
 			}
