@@ -21,6 +21,13 @@ typedef enum {
  */
 void sound_analysis(float* data);
 
+void process_direction (void);	
+
+
+float get_last_direction(void);
+
+
+
 /* sound_detection : allows you to indicate the detection of a sound in another file
  */
 

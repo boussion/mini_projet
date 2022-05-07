@@ -31,6 +31,7 @@ static float micBack_output[FFT_SIZE];
 static float stored_dir[5];
 static float sum_dir;
 
+static float last_direction;
 
 static int freq_max;
 static int ooo;
@@ -241,37 +242,45 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		if(detection_son()){
 			//turn_puck(60);
 			float direction;
+			process_direction();
+			//chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", get_last_direction());
 
-			direction=get_sound_direction(stored_mic[0], freq_max);
-
-			float direction2;
-			direction2 = rad_to_deg(direction);
-			if(direction2 < 50){
-				//chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO LOOOOOWWW %d\r\n");
-				direction2=50;
-			}
-			if(direction2>140){
-				//chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO HIGGGHHHH %d\r\n");
-				direction2 = 140;
-			}
-			direction2=adjust_deg(direction2);
-			sum_dir = sum_dir + direction2;
-			//chprintf((BaseSequentialStream*)&SD3,"direction 2: %f\r\n", direction2);
-			//chprintf((BaseSequentialStream*)&SD3,"sum_dir: %f\r\n", sum_dir);
-
-
-			++ooo;
-			if(ooo > 4){
-				//chprintf((BaseSequentialStream*)&SD3,"ooo: %d\r\n", ooo);
-				//chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", sum_dir/5);
-				ooo = 0;
-				sum_dir = 0;
-			}
 		}
 	}
 }
 
+void process_direction (void){	
+	float direction;
+	direction = get_sound_direction(stored_mic[0], freq_max);
+	float direction2;
+	direction2 = rad_to_deg(direction);
+	if(direction2 < 50){
+		//chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO LOOOOOWWW %d\r\n");
+		direction2=50;
+	}
+	if(direction2>140){
+		//chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO HIGGGHHHH %d\r\n");
+		direction2 = 140;
+	}
+	direction2=adjust_deg(direction2);
+	sum_dir = sum_dir + direction2;
+	//chprintf((BaseSequentialStream*)&SD3,"direction 2: %f\r\n", direction2);
+	//chprintf((BaseSequentialStream*)&SD3,"sum_dir: %f\r\n", sum_dir);
 
+
+	++ooo;
+	if(ooo > 4){
+		//chprintf((BaseSequentialStream*)&SD3,"ooo: %d\r\n", ooo);
+		//chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", sum_dir/5);
+		last_direction = sum_dir/5;
+		ooo = 0;
+		sum_dir = 0;
+	}
+}
+
+float get_last_direction(void){
+	return last_direction;
+}
 
 void move_round(float direction){
 
