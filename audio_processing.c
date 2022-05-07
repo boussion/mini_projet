@@ -35,8 +35,8 @@ static float micBack_output[FFT_SIZE];
 
 // Frequencies studied:
 #define FREQ_REF	128   // 2 000 Hz
-#define FREQ_MVT_MIN	(FREQ_REF-1) // 1 984,375 Hz
-#define FREQ_MVT_MAX 	(FREQ_REF+1) // 2 015.625 Hz
+#define FREQ_MVT_MIN	(FREQ_REF-2) // 1 984,375 Hz
+#define FREQ_MVT_MAX 	(FREQ_REF+2) // 2 015.625 Hz
 
 
 #define MIC_FRONT_RIGHT 1
@@ -179,6 +179,25 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		sound_analysis(micFront_output);
 	}
 }
+
+/*
+static THD_WORKING_AREA(waFrequencyDetection, 1024);
+static THD_FUNCTION(FrequencyDetection, arg) {
+
+    chRegSetThreadName(__FUNCTION__);
+    (void)arg;
+
+    while(1){
+    	mic_start(&processAudioData);
+    }
+}
+*/
+/*
+void frequency_detection_start(void){
+	chThdCreateStatic(waFrequencyDetection, sizeof(waFrequencyDetection), NORMALPRIO, FrequencyDetection, NULL);
+}
+
+*/
 
 void wait_send_to_computer(void){
 	chBSemWait(&sendToComputer_sem);

@@ -18,7 +18,7 @@
 #include <arm_math.h>
 
 #define LIMITE_DETECTION 65536 // maximum uint16_t => 65536
-#define RAYON_CERCLE 180 // we consider a circle of radius 18 centimetres
+#define RAYON_CERCLE 230 // we consider a circle of radius 18 centimetres
 #define LIMITE_DISTANCE 20 // robot must stop 5 mm from the edge of the circle
 #define ERREUR_POSSIBLE 20 // error threshold
 #define ERROR_EDGE      40

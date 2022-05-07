@@ -98,6 +98,7 @@ int main(void)
 #ifdef SEND_FROM_MIC
     //starts sound detection
     mic_start(&processAudioData);
+    //frequency_detection_start();
 #endif  /* SEND_FROM_MIC */
 
     /* Infinite loop. */

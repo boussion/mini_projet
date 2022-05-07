@@ -37,6 +37,8 @@ void wait_send_to_computer(void);
 */
 float* get_audio_buffer_ptr(BUFFER_NAME_t name);
 
+//void frequency_detection_start(void);
+
 //void deux_microphones_a_proximite(void);
 
 //int16_t determination_angle_rotation(void);

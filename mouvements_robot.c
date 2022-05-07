@@ -81,6 +81,7 @@ static THD_FUNCTION(PRegulator, arg) {
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
+
     	    systime_t time;
     	    int16_t speed = 0;
     	    int16_t speed_correction = 0;
@@ -102,7 +103,7 @@ static THD_FUNCTION(PRegulator, arg) {
 
     	        //if the line is nearly in front of the camera, don't rotate
     	        //need to correct this value to allow the good recognition of the line
-    	        if(abs(speed_correction) < ROTATION_THRESHOLD || adjustement_dist() <= 45){
+    	        if(abs(speed_correction) < ROTATION_THRESHOLD || adjustement_dist() <= 45 || adjustement_dist()>=180){
     	        	speed_correction = 0;
     	        }
 
