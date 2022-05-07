@@ -14,18 +14,20 @@
 #include <detection_bords.h>
 #include <detection_ligne.h>
 #include <audio_processing.h>
+#include <locate_sound.h>
 
 
 #define ROTATION_THRESHOLD 50
 #define ERROR_THRESHOLD  10
-#define ROTATION_COEFF 0.25
+#define ERROR_THRESHOLD_SOUND 2
+#define ROTATION_COEFF_LINE 0.25
+#define ROTATION_COEFF_SOUND 10
 #define IMAGE_BUFFER_SIZE 640
 #define MOTOR_SPEED_LIMIT 1100 // [step/s]
 #define KP					5
 //#define KI 					0.5
 #define MAX_SUM_ERROR 	(MOTOR_SPEED_LIMIT/KI)
 #define MAX_ERROR		(MOTOR_SPEED_LIMIT/KP)
-
 
 /*
  *  pi_regulator_long: allows to determine a forward or backward speed of the robot
@@ -85,7 +87,9 @@ static THD_FUNCTION(PRegulator, arg) {
 
     	    systime_t time;
     	    int16_t speed = 0;
-    	    int16_t speed_correction = 0;
+    	    int16_t speed_correction_line = 0;
+    	    int16_t speed_correction_sound = 0;
+    	    //float speed_correction_sound=0;
 
     	    while(1){
 
@@ -95,22 +99,46 @@ static THD_FUNCTION(PRegulator, arg) {
     	        //computes the speed to give to the motors using the pi-regulator
     	        speed = pi_regulator();
 
-    	        chprintf((BaseSequentialStream*)&SD3,"distance= %u", adjustement_dist());
 
 
     	        //speed correction according to the position of the line to let the robot rotate to be in front of the line
-    	        speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
+    	       // speed_correction_line = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
+
+    	        if(sound_detection()==1){
+    	        	speed_correction_sound = (int16_t)get_last_direction();
+    	        }else{
+    	        	speed_correction_sound = 0;
+    	        }
+
+    	        if((speed_correction_sound>=-ERROR_THRESHOLD_SOUND) && (speed_correction_sound<=ERROR_THRESHOLD_SOUND)){
+    	        	speed_correction_sound=0;
+    	        }
     	        //speed_correction=0;
 
     	        //if the line is nearly in front of the camera, don't rotate
     	        //need to correct this value to allow the good recognition of the line
-    	        if(abs(speed_correction) < ROTATION_THRESHOLD || adjustement_dist() <= 45 || adjustement_dist()>=180){
-    	        	speed_correction = 0;
+    	        if(abs(speed_correction_line) < ROTATION_THRESHOLD || adjustement_dist() <= 45 || adjustement_dist()>=180){
+    	        	speed_correction_line = 0;
     	        }
 
+    	        /*
+    	        if(abs(speed_correction_sound) < ROTATION_THRESHOLD){
+    	        	speed_correction_sound = 0;
+    	        }
+    	        */
+
+
+
 				//applies the speed from the PI regulator and the correction for the rotation on the motors
-				right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
-				left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
+				//right_motor_set_speed(speed - ROTATION_COEFF_LINE * speed_correction_line);
+				//left_motor_set_speed(speed + ROTATION_COEFF_LINE * speed_correction_line);
+
+    	     // right_motor_set_speed(speed - ROTATION_COEFF * speed_correction_sound);
+    	      //left_motor_set_speed(speed + ROTATION_COEFF * speed_correction_sound);
+
+    	        right_motor_set_speed( speed + ROTATION_COEFF_SOUND * speed_correction_sound);
+    	        left_motor_set_speed( speed - ROTATION_COEFF_SOUND * speed_correction_sound);
+
 
 				//chprintf((BaseSequentialStream*)&SD3,"error = %ld", distance_centre());
 				//chprintf((BaseSequentialStream*)&SD3,"capture = %ld", capture());

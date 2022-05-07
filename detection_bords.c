@@ -89,7 +89,7 @@ int16_t update_distance(void){
 	edge_distance();
 
 	//if sound detected => robot reachs the edges
-	if(sound_detection()==0){
+	if(sound_detection()==1){
 		distance_to_travel = distance_to_edges;
 
 	//if sound not detected => robot stays in the centre
