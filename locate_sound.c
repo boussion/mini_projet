@@ -10,6 +10,8 @@
 #include <epuck1x/a_d/advance_ad_scan/e_micro.h>
 #include <arm_math.h>
 
+#include <audio_processing.h>
+
 #include <locate_sound.h>
 
 /* defines used in main.c                          */
@@ -18,6 +20,8 @@
 #define PERCENT 0.1			// Defines range to distinguish between noise an signal
 #define NB_SAMPLES 100
 
+static int ooo;
+static int iii;
 
 /* defines used in ad_conv_int.c					*/
 //#define MIC_SAMP_NB 100		// number of microphone samples to store
@@ -25,8 +29,10 @@
 /* defines used in find_direction					*/
 //maximum_delta_t =
 //sampling_frequency[Hz] * distance_between_microphones[m] / speed_of_sound[m/s];
-#define MAXIMUM_DELTA_T1 6.
-#define MAXIMUM_DELTA_T2 5.
+#define MAXIMUM_DELTA_T1 0.06
+#define MAXIMUM_DELTA_T2 0.05
+#define SPEED_SOUND 343
+#define DIST_MIC1 0.05
 
 /* defines used in find_delta_t.c					*/
 #define TAU_RANGE 14		// Needs to be a pair number
@@ -35,6 +41,9 @@
 #define TURN_SPEED 1000
 #define STEPS_FOR_2PI 1300.
 #define MIC_SAMP_NB 100
+#define NB_MIC 3
+#define FREQ_REF 2000
+#define FREQ_REF_INDEX 128
 
 
 //int new_sample;
@@ -43,20 +52,28 @@ int mean_nb;
 float mean[3];
 float signal_max[3], signal_min[3];
 
+static int freq_real;
+
 //WE NEED TO INITIATE BEFORE
-static int bufferOutput[MIC_SAMP_NB][3];				//Array to store the mic values
+static int bufferOutput[NB_MIC][2];				//Array to store the mic values
 
 
-void reassign_table(struct Mic_Record* stored_mic){
-	for (int i = 0; i < NB_SAMPLES; i++)			// for the whole signal
-	{
-		bufferOutput[i][0]=(int)stored_mic[i].Mic0;
-		bufferOutput[i][1]=(int)stored_mic[i].Mic1;
-		bufferOutput[i][2]=(int)stored_mic[i].Mic2;
-	}
+void reassign_table(struct Mic_Record stored_mic){
+	bufferOutput[0][0]=stored_mic.Mic0real;
+	bufferOutput[0][1]=stored_mic.Mic0cplx;
+	bufferOutput[1][0]=stored_mic.Mic1real;
+	bufferOutput[1][1]=stored_mic.Mic1cplx;
+	bufferOutput[2][0]=stored_mic.Mic2real;
+	bufferOutput[2][1]=stored_mic.Mic2cplx;
 }
 
-float get_sound_direction(struct Mic_Record* stored_mic)
+float get_arg(float real, float complex){
+	float arg;
+	arg = atan2f(complex,real);
+	return arg;
+}
+
+float get_sound_direction(struct Mic_Record stored_mic, int freq_max)
 {
 
 	float direction;
@@ -88,13 +105,19 @@ void filter_signal(void){
 
 float calculate_direction(void)
 {
-	int delta_t1, delta_t2;
+	float delta_t1, delta_t2;
 	float direction, angle1, angle2;
 
 	// first get the phase-shift between the right and the left microphone
+
+	/*//UNCOMMENT IF CORRELATION
 	delta_t1 = find_delta_t(0,1);
 	chprintf((BaseSequentialStream*)&SD3,"delta t1: %d\n", delta_t1, "%d\n");
+	*/
+	delta_t1 = find_delta_t_phase(0,1);
+
 	// calculate the angle (between -90deg and +90deg where the sound is coming from)
+	/*
 	if (delta_t1 >= MAXIMUM_DELTA_T1){
 			angle1 = PI * 0.5; 			// to avoid NaN of asin
 	}
@@ -102,7 +125,7 @@ float calculate_direction(void)
 			angle1 = -PI * 0.5; 		// to avoid NaN of asin
 	}
 	else{
-		angle1 = asin( (float)(delta_t1)/MAXIMUM_DELTA_T1 );
+		angle1 = atan((float)(delta_t1)/MAXIMUM_DELTA_T1 );
 	}
 
 	// now if the signal is coming from the right, we check the phase-shift between the
@@ -112,8 +135,11 @@ float calculate_direction(void)
 	// rear microphone
 	if(angle1 > 0)
 	{
-		delta_t2 = find_delta_t(2,1);   // phase shift between left and rear microphone
-		chprintf((BaseSequentialStream*)&SD3,"2,1 delta t2: %d\n", delta_t2, "%d\n");
+		chprintf((BaseSequentialStream*)&SD3,"delta t2: %d\n", delta_t2, "%d\n");
+		*//*
+		delta_t2 = find_delta_t_phase(2,1);
+		chprintf((BaseSequentialStream*)&SD3,"delta t2: %f\n", delta_t2);
+
 		if (delta_t2 >= MAXIMUM_DELTA_T2)
 			angle2 = PI * 0.5; 			// to avoid NAN of asin
 		else if (delta_t2 <= -MAXIMUM_DELTA_T2)
@@ -127,8 +153,12 @@ float calculate_direction(void)
 	}
 	else
 	{
-		delta_t2 = find_delta_t(0,2); 	// phase shift between right and rear microphone
-		chprintf((BaseSequentialStream*)&SD3,"0,2 delta t2: %d\n", delta_t2, "%d\n");
+		/*UNCOMMENT IF CORRELATION
+		delta_t1 = find_delta_t(0,2);
+		chprintf((BaseSequentialStream*)&SD3,"delta t2: %d\n", delta_t2, "%d\n");
+
+		delta_t2 = find_delta_t_phase(0,2);
+		chprintf((BaseSequentialStream*)&SD3,"delta t2: %f\n", delta_t2);
 		if (delta_t2 >= MAXIMUM_DELTA_T2)
 			angle2 = PI * 0.5; 			// to avoid NAN of asin
 		else if (delta_t2 <= -MAXIMUM_DELTA_T2)
@@ -140,12 +170,44 @@ float calculate_direction(void)
 			direction = PI - angle1;	// the direction = 90deg -angle1
 		else direction = angle1;
 	}
-
+*/
+	float d_esp1;
+	d_esp1 = delta_t1*SPEED_SOUND;
+	/*
+	if(ooo>10){
+			chprintf((BaseSequentialStream*)&SD3,"desp: %f\r\n", d_esp1);
+		ooo=0;
+		}
+	++ooo;
+	*/
+	direction = acosf(d_esp1);
 	// We want an angle strictly between [0,2*PI]
 	if (direction < 0){
 		direction = 2*PI + direction;
 	}
+	if(!((direction<2.433)&&(direction>0.698))){
+		//chprintf((BaseSequentialStream*)&SD3,"WRONG NUMBER", direction);
+		direction=PI/2;
+	}
+	/*
+	if(direction>2.443){
+		direction = 2.443;
+	}
+	if(direction<0.698){
+		direction = 0.698;
+	}
+	*/
+	//chprintf((BaseSequentialStream*)&SD3,"direction direct: %f\r\n", direction);
 	return direction;
+}
+
+float find_delta_t_phase(int mic1_nb, int mic2_nb){
+	float delta_t = 0;
+	float arg1, arg2;
+	arg1=get_arg(bufferOutput[mic1_nb][0],bufferOutput[mic1_nb][1]);
+	arg2=get_arg(bufferOutput[mic2_nb][0],bufferOutput[mic2_nb][1]);
+	delta_t = (1024*0.001*(arg1-arg2))/(2*PI*FREQ_REF_INDEX);
+	return delta_t;
 }
 
 
@@ -215,5 +277,85 @@ void show_led(float angle)
 
 
 }
+
+float absolute_float(float enter){
+	if(enter<0){
+		enter=-enter;
+	}
+	return enter;
+}
+
+float calculate_direction2(void)
+{
+	/*
+	if(iii>5){
+		chprintf((BaseSequentialStream*)&SD3,"HELLO %f\r\n");
+		iii=0;
+	}
+	++iii;
+	*/
+	float direction, angle1, angle11;
+	float d_esp1, d_esp2, delta_t1, delta_t2;
+
+	delta_t1 = find_delta_t_phase(0,1);
+
+	if(delta_t1<0){
+		delta_t2 = find_delta_t_phase(0,2);
+	}
+	else{
+		delta_t2 = find_delta_t_phase(1,2);
+	}
+
+	d_esp1 = SPEED_SOUND*delta_t1;
+
+	//angle1 = absolute_float(acosf(absolute_float(d_esp1)/0.06));
+
+	angle11 = acosf((d_esp1));
+/*
+	if(absolute_float(angle1)<(PI/10)){
+		direction = PI/2;
+	}
+	else if((angle1<(0.41*PI))&&(d_esp2>0.04)){
+		direction = (PI/2)-angle1;
+	}
+	else if((angle1>=(0.41*PI))&&(angle1<(PI/2))&&(d_esp2>0)){
+		direction=(PI/2)-angle1;
+	}
+	else if(d_esp2<0.04){
+		direction = (PI/2)+angle1;
+	}
+	else{
+	}
+*/
+		direction = angle11;
+/*
+	if(d_esp1>0){
+		direction =- direction;
+	}
+*/
+	/*if(ooo>5){
+			chprintf((BaseSequentialStream*)&SD3,"angle1: %f\r\n", 180*angle1/PI);
+			chprintf((BaseSequentialStream*)&SD3,"angle11: %f\r\n", 180*angle11/PI);
+			chprintf((BaseSequentialStream*)&SD3,"delta: %f\r\n", delta_t1);
+			chprintf((BaseSequentialStream*)&SD3,"direction: %f\r\n", 180*direction/PI);
+			ooo=0;
+
+	}
+	++ooo;
+	*/
+		if(direction>2.443){
+			direction = 2.443;
+		}
+		if(direction<0.698){
+			direction = 0.698;
+		}
+		chprintf((BaseSequentialStream*)&SD3,"direction direct: %f\r\n", direction);
+
+	return direction;
+}
+
+
+
+
 
 
