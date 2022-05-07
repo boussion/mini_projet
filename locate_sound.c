@@ -20,6 +20,7 @@
 #define PERCENT 0.1			// Defines range to distinguish between noise an signal
 #define NB_SAMPLES 100
 
+//counters
 static int ooo;
 static int iii;
 
@@ -86,12 +87,12 @@ float get_arg(float real, float complex){
 	return arg;
 }
 
+//main location function
 float get_sound_direction(struct Mic_Record stored_mic, int freq_max)
 {
-
 	float direction;
 
-	reassign_table(stored_mic);
+	reassign_table(stored_mic); //reassigns the stored values in an array of arrays so that it's easier to analyse
 
 	//filter_signal();        // filters the signals
 
@@ -103,7 +104,7 @@ float get_sound_direction(struct Mic_Record stored_mic, int freq_max)
 }
 
 
-
+//not used
 void filter_signal(void){
 	for (int j=0; j<3; j++)  							// for all three mics
 	{
@@ -116,6 +117,8 @@ void filter_signal(void){
 	}
 }
 
+//uses trigonometry and the phase difference to determine the angle of incidence of the noise
+//it's only effective for +-45 degs of the front of the e puck
 float calculate_direction(void)
 {
 	float delta_t1, delta_t2;
@@ -184,8 +187,8 @@ float calculate_direction(void)
 		else direction = angle1;
 	}
 */
-	float d_esp1;
-	d_esp1 = delta_t1*SPEED_SOUND;
+	float d_esp1; //spatial_distance
+	d_esp1 = delta_t1*SPEED_SOUND; //spatial_distance = time_difference * speed_of_sound
 	/*
 	if(ooo>10){
 			chprintf((BaseSequentialStream*)&SD3,"desp: %f\r\n", d_esp1);
@@ -214,55 +217,13 @@ float calculate_direction(void)
 	return direction;
 }
 
+//determine the phase shift between the signals
 float find_delta_t_phase(int mic1_nb, int mic2_nb){
 	float delta_t = 0;
 	float arg1, arg2;
 	arg1=get_arg(bufferOutput[mic1_nb][0],bufferOutput[mic1_nb][1]);
 	arg2=get_arg(bufferOutput[mic2_nb][0],bufferOutput[mic2_nb][1]);
 	delta_t = (1024*0.001*(arg1-arg2))/(2*PI*FREQ_REF_INDEX);
-	return delta_t;
-}
-
-
-//Find the time separation delta_t between the two signals based on the correlation between the signals.
-int find_delta_t(int mic1_nb,int mic2_nb)
-{
-	int delta_t = 0;
-	int tau = 0;
-	int k = 0;
-	long int correlation, max;
-
-	int tau_min = -TAU_RANGE / 2;
-	int tau_max = TAU_RANGE / 2;
-
-	int save_sound_start = TAU_RANGE / 2 + 1;
-	int save_sound_end = NB_SAMPLES - TAU_RANGE / 2 - 1;
-
-
-	max = 0;
-
-	for (tau = tau_min; tau < tau_max; tau++)
-	{
-		//reset the the correlation value
-		correlation = 0;
-
-	    // For each tau calculate the correlation between the two signals
-	    for (k = save_sound_start; k < save_sound_end; k++)
-	    {
-		    correlation += (long int)(bufferOutput[k][mic1_nb]) * (long int)(bufferOutput[k+tau][mic2_nb] );
-		}
-
-		// find out if this correlation is the biggest one so far. --> If yes,
-    	// save the value of tau --> This gives us the phase shift between the
-	    // signals
-        if (correlation > max)
-        {
-	        max = correlation;
-	        delta_t = tau;
-	    }
-
-	}
-
 	return delta_t;
 }
 
@@ -287,10 +248,9 @@ void show_led(float angle)
 	if ( angle > (15*PI/8) )
 		led_nb = LED8;
 	set_led(led_nb, 1);
-
-
 }
 
+//gets the absolute value of a float
 float absolute_float(float enter){
 	if(enter<0){
 		enter=-enter;
@@ -298,6 +258,7 @@ float absolute_float(float enter){
 	return enter;
 }
 
+//second method to determine the direction of the sound made
 float calculate_direction2(void)
 {
 	/*
@@ -366,9 +327,4 @@ float calculate_direction2(void)
 
 	return direction;
 }
-
-
-
-
-
 
