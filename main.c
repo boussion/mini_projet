@@ -27,7 +27,7 @@
 //uncomment to use double buffering to send the FFT to the computer
 //#define DOUBLE_BUFFERING
 
-//Pour faire fonctionner la caméra
+//Pour faire fonctionner la camï¿½ra
 void SendUint8ToComputer(uint8_t* data, uint16_t size)
 {
 	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);

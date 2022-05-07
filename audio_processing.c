@@ -11,6 +11,8 @@
 #include <fft.h>
 #include <arm_math.h>
 #include <leds.h>
+#include <locate_sound.h>
+
 
 //semaphore
 static BSEMAPHORE_DECL(sendToComputer_sem, TRUE);
@@ -26,6 +28,13 @@ static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
+static float stored_dir[5];
+static float sum_dir;
+
+
+static int freq_max;
+static int ooo;
+
 #define MIN_VALUE_THRESHOLD	10000 
 
 
@@ -37,7 +46,9 @@ static float micBack_output[FFT_SIZE];
 #define FREQ_REF	128   // 2 000 Hz
 #define FREQ_MVT_MIN	(FREQ_REF-2) // 1 984,375 Hz
 #define FREQ_MVT_MAX 	(FREQ_REF+2) // 2 015.625 Hz
+#define FREQ_MVT_RANGE (FREQ_MVT_MAX-FREQ_MVT_MIN)	//MAX_FREQ-MIN_FREQ
 
+#define NB_SAMPLES 100 //Nb de samples enregistr�s pour localiser le son
 
 #define MIC_FRONT_RIGHT 1
 #define MIC_FRONT_LEFT 2
@@ -48,14 +59,18 @@ static float micBack_output[FFT_SIZE];
 // To set the amplitude at which a frequency is considered to be detected:
 #define AMPLITUDE_MIN 30000 // avoids detection of shocks to the structure
 
+static struct Mic_Record stored_mic[NB_SAMPLES];
+
+
 // Sound detection:
 static	int  son_detection = 0; // Signal that indicates whether noise is detected
 //static uint16_t micro_a_proximite=0;
 
 /* sound_analysis: Detects a sound frequency between 1984.375 Hz and 2015.625 Hz and updates the static variable
  Param�tres :
- *	float *data			Buffer containing 1024 symmetrical samples, that is 2*512 samples. It corresponds to one of the 4 microphones.
- */
+*/
+//float *data			Buffer containing 1024 symmetrical samples, that is 2*512 samples. It corresponds to one of the 4 microphones.
+
 void sound_analysis(float* data){
 	int detection = 0; // use a local variable to update a static variable
 
@@ -96,6 +111,37 @@ bool sound_detection (void){
 
 }
 
+//A VIRER SI RECHECK
+
+bool detection_son(void){
+
+	return son_detection;
+
+	}
+
+float mean_sound(float* mic_nb){
+	float average = 0;
+	for(uint8_t i = FREQ_MVT_MIN; i <= FREQ_MVT_MAX; ++i){
+		average = mic_nb[i] + average;
+	}
+	average = average/(FREQ_MVT_RANGE+1);
+	return average;
+}
+
+//Enregistre le son des micros
+void record_sound(void){
+	chprintf((BaseSequentialStream*)&SD3,"sound in %d\n");
+
+	//for(uint16_t i=0; i<NB_SAMPLES; ++i){
+	//	recorded_sound_1[i]=mean_sound(micRight_output);
+	//	recorded_sound_2[i]=mean_sound(micLeft_output);
+	//	recorded_sound_3[i]=mean_sound(micBack_output);
+	//}
+	chprintf((BaseSequentialStream*)&SD3,"sound done %d\n");
+
+}
+
+
 /*
  *	Callback called when the demodulation of the four microphones is done.
  *	We get 160 samples per mic every 10ms (16kHz)
@@ -105,6 +151,19 @@ bool sound_detection (void){
  *							so we have [micRight1, micLeft1, micBack1, micFront1, micRight2, etc...]
  *	uint16_t num_samples	Tells how many data we get in total (should always be 640)
  */
+
+
+float mean_dir(float* stored_dir){
+	float sum_dir=0;
+	for(int i=0; i<5; ++i){
+		sum_dir =+ stored_dir[i];
+	}
+	sum_dir=sum_dir/5;
+	return sum_dir;
+}
+
+
+
 void processAudioData(int16_t *data, uint16_t num_samples){
 
 	/*
@@ -117,6 +176,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 
 	static uint16_t nb_samples = 0;
 	static uint8_t mustSend = 0;
+	static uint16_t nb_record = 0;
 
 	//loop to fill the buffers
 	for(uint16_t i = 0 ; i < num_samples ; i+=4){
@@ -142,7 +202,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 	}
 
 	if(nb_samples >= (2 * FFT_SIZE)){
-		/*	FFT proccessing
+		/*	FFT processing
 		 *
 		 *	This FFT function stores the results in the input buffer given.
 		 *	This is an "In Place" function.
@@ -164,40 +224,85 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
 		arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
 		arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
+		//deux_microphones_a_proximite();
 
 		//sends only one FFT result over 10 for 1 mic to not flood the computer
 		//sends to UART3
+
 		if(mustSend > 8){
 			//signals to send the result to the computer
-			chBSemSignal(&sendToComputer_sem);
+			//chBSemSignal(&sendToComputer_sem);
 			mustSend = 0;
 		}
 		nb_samples = 0;
 		mustSend++;
-
-		//sound analysis with the front microphone
+		store_sound(nb_record);
 		sound_analysis(micFront_output);
+		if(detection_son()){
+			//turn_puck(60);
+			float direction;
+
+			direction=get_sound_direction(stored_mic[0], freq_max);
+
+			float direction2;
+			direction2 = (direction/PI)*180;
+			if(direction2 < 50){
+				chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO LOOOOOWWW %d\r\n");
+			}
+			if(direction2>140){
+				chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO HIGGGHHHH %d\r\n");
+				direction2=90;
+			}
+			sum_dir = sum_dir + direction2;
+			//chprintf((BaseSequentialStream*)&SD3,"direction 2: %f\r\n", direction2);
+			//chprintf((BaseSequentialStream*)&SD3,"sum_dir: %f\r\n", sum_dir);
+
+
+			++ooo;
+			if(ooo > 4){
+				//chprintf((BaseSequentialStream*)&SD3,"ooo: %d\r\n", ooo);
+				chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", sum_dir/5);
+				ooo = 0;
+				sum_dir = 0;
+			}
+		}
 	}
 }
 
-/*
-static THD_WORKING_AREA(waFrequencyDetection, 1024);
-static THD_FUNCTION(FrequencyDetection, arg) {
 
-    chRegSetThreadName(__FUNCTION__);
-    (void)arg;
 
-    while(1){
-    	mic_start(&processAudioData);
-    }
-}
-*/
-/*
-void frequency_detection_start(void){
-	chThdCreateStatic(waFrequencyDetection, sizeof(waFrequencyDetection), NORMALPRIO, FrequencyDetection, NULL);
+void move_round(float direction){
+
 }
 
-*/
+
+
+void store_sound(uint16_t nb_record){
+	nb_record = 0; //COMMENT IF NEED MORE THAN 1 SAMPLE
+	int freq_max = FREQ_REF;
+	float val_max = micRight_output[FREQ_REF-1];
+	/*
+	if(ooo>5){
+		chprintf((BaseSequentialStream*)&SD3,"val0: %f\r\n", micRight_output[FREQ_REF-2]);
+		chprintf((BaseSequentialStream*)&SD3,"val1: %f\r\n", micRight_output[FREQ_REF]);
+		chprintf((BaseSequentialStream*)&SD3,"val2: %f\r\n", micRight_output[FREQ_REF+2]);
+	}
+	*/
+	/*
+	for(int i=0; i<1; ++i){
+		if (micRight_output[FREQ_REF+i]>val_max){
+			val_max=micRight_output[FREQ_REF+i];
+			freq_max = FREQ_REF+i;
+		}
+	}
+	*/
+	stored_mic[nb_record].Mic0real = micRight_cmplx_input[2*freq_max];
+	stored_mic[nb_record].Mic1real = micLeft_cmplx_input[2*freq_max];
+	stored_mic[nb_record].Mic2real = micBack_cmplx_input[2*freq_max];
+	stored_mic[nb_record].Mic0cplx = micRight_cmplx_input[2*freq_max+1];
+	stored_mic[nb_record].Mic1cplx = micLeft_cmplx_input[2*freq_max+1];
+	stored_mic[nb_record].Mic2cplx = micBack_cmplx_input[2*freq_max+1];
+}
 
 void wait_send_to_computer(void){
 	chBSemWait(&sendToComputer_sem);
