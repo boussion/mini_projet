@@ -53,7 +53,7 @@ static	int  son_detection = 0; // Signal that indicates whether noise is detecte
 //static uint16_t micro_a_proximite=0;
 
 /* sound_analysis: Detects a sound frequency between 1984.375 Hz and 2015.625 Hz and updates the static variable
- Paramètres :
+ Paramï¿½tres :
  *	float *data			Buffer containing 1024 symmetrical samples, that is 2*512 samples. It corresponds to one of the 4 microphones.
  */
 void sound_analysis(float* data){
@@ -217,7 +217,7 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 
 
 /*
- *	deux_microphones_a_proximite: permet de déterminer les deux microphones les plus proches de la provenance du bruit en mettant à jour la variable statique micro_a_proximite
+ *	deux_microphones_a_proximite: permet de dï¿½terminer les deux microphones les plus proches de la provenance du bruit en mettant ï¿½ jour la variable statique micro_a_proximite
  */
 
 /*

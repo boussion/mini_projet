@@ -29,6 +29,7 @@
 
 /*
  *  pi_regulator_long: allows to determine a forward or backward speed of the robot
+ * 	modified to only work with update_distance
  */
 int32_t pi_regulator(void){
 
