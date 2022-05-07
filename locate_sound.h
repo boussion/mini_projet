@@ -25,6 +25,9 @@ float find_delta_t_phase(int mic1_nb, int mic2_nb);
 
 void show_led(float angle);
 
+float rad_to_deg(float rad);
+
+float adjust_deg(float deg);
 
 
 

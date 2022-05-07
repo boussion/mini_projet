@@ -67,6 +67,19 @@ void reassign_table(struct Mic_Record stored_mic){
 	bufferOutput[2][1]=stored_mic.Mic2cplx;
 }
 
+
+//converts angles in rads to degrees
+float rad_to_deg(float rad){
+	rad = (rad/PI)*180;
+	return rad;
+}
+
+//adjusts values of output to have a 0 at the origin
+float adjust_deg(float deg){
+	deg = deg - 90;
+	return deg;
+}
+
 float get_arg(float real, float complex){
 	float arg;
 	arg = atan2f(complex,real);
