@@ -27,14 +27,21 @@ static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
+static float stored_dir[5];
+static float sum_dir;
+
+
+static int freq_max;
+static int ooo;
+
 #define MIN_VALUE_THRESHOLD	10000 
 
 // Constantes:
 //pour fixer la fréquence d'utilisation du son dans le projet
-#define MIN_FREQ	115	// On n'analyse pas le bruit avant 1 796,875 Hz
-#define MAX_FREQ	140 	// On n'analyse pas le bruit après 2 187,5 Hz
+#define MIN_FREQ	123	// On n'analyse pas le bruit avant 1 796,875 Hz
+#define MAX_FREQ	133 	// On n'analyse pas le bruit après 2 187,5 Hz
 
-#define FREQ_REF	128   // 2 000 Hz
+#define FREQ_REF	128  // 2 000 Hz
 #define FREQ_MVT_MIN	(FREQ_REF-1) // 1 984,375 Hz
 #define FREQ_MVT_MAX 	(FREQ_REF+1) // 2 015.625 Hz
 #define FREQ_MVT_RANGE (FREQ_MVT_MAX-FREQ_MVT_MIN)	//MAX_FREQ-MIN_FREQ
@@ -148,6 +155,19 @@ void record_sound(void){
  *							so we have [micRight1, micLeft1, micBack1, micFront1, micRight2, etc...]
  *	uint16_t num_samples	Tells how many data we get in total (should always be 640)
  */
+
+
+float mean_dir(float* stored_dir){
+	float sum_dir=0;
+	for(int i=0; i<5; ++i){
+		sum_dir =+ stored_dir[i];
+	}
+	sum_dir=sum_dir/5;
+	return sum_dir;
+}
+
+
+
 void processAudioData(int16_t *data, uint16_t num_samples){
 
 	/*
@@ -224,32 +244,72 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		}
 		nb_samples = 0;
 		mustSend++;
-		if(nb_record == NB_SAMPLES){
-			nb_record = 0;
-		}
-		//chprintf((BaseSequentialStream*)&SD3,"sound record: %d\n", nb_record, "%d\n");
 		store_sound(nb_record);
-		nb_record++;
 		analyse_son(micLeft_output);
 		if(detection_son()){
+			//turn_puck(60);
 			float direction;
-			//chprintf((BaseSequentialStream*)&SD3,"sound direction: %d\n", nb_record, "%d\n");
 
-			direction=get_sound_direction(stored_mic);
-			chprintf((BaseSequentialStream*)&SD3,"direction: %f\n", direction);
+			direction=get_sound_direction(stored_mic[0], freq_max);
 
+			float direction2;
+			direction2 = (direction/PI)*180;
+			if(direction2 < 50){
+				chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO LOOOOOWWW %d\r\n");
+			}
+			if(direction2>140){
+				chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO HIGGGHHHH %d\r\n");
+				direction2=90;
+			}
+			sum_dir = sum_dir + direction2;
+			//chprintf((BaseSequentialStream*)&SD3,"direction 2: %f\r\n", direction2);
+			//chprintf((BaseSequentialStream*)&SD3,"sum_dir: %f\r\n", sum_dir);
+
+
+			++ooo;
+			if(ooo > 4){
+				//chprintf((BaseSequentialStream*)&SD3,"ooo: %d\r\n", ooo);
+				chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", sum_dir/5);
+				ooo = 0;
+				sum_dir = 0;
+			}
 		}
 	}
 }
+
+
 
 void move_round(float direction){
 
 }
 
+
+
 void store_sound(uint16_t nb_record){
-	stored_mic[nb_record].Mic0 = max_sound(micRight_output);
-	stored_mic[nb_record].Mic1 = max_sound(micLeft_output);
-	stored_mic[nb_record].Mic2 = max_sound(micBack_output);
+	nb_record = 0; //COMMENT IF NEED MORE THAN 1 SAMPLE
+	int freq_max = FREQ_REF;
+	float val_max = micRight_output[FREQ_REF-1];
+	/*
+	if(ooo>5){
+		chprintf((BaseSequentialStream*)&SD3,"val0: %f\r\n", micRight_output[FREQ_REF-2]);
+		chprintf((BaseSequentialStream*)&SD3,"val1: %f\r\n", micRight_output[FREQ_REF]);
+		chprintf((BaseSequentialStream*)&SD3,"val2: %f\r\n", micRight_output[FREQ_REF+2]);
+	}
+	*/
+	/*
+	for(int i=0; i<1; ++i){
+		if (micRight_output[FREQ_REF+i]>val_max){
+			val_max=micRight_output[FREQ_REF+i];
+			freq_max = FREQ_REF+i;
+		}
+	}
+	*/
+	stored_mic[nb_record].Mic0real = micRight_cmplx_input[2*freq_max];
+	stored_mic[nb_record].Mic1real = micLeft_cmplx_input[2*freq_max];
+	stored_mic[nb_record].Mic2real = micBack_cmplx_input[2*freq_max];
+	stored_mic[nb_record].Mic0cplx = micRight_cmplx_input[2*freq_max+1];
+	stored_mic[nb_record].Mic1cplx = micLeft_cmplx_input[2*freq_max+1];
+	stored_mic[nb_record].Mic2cplx = micBack_cmplx_input[2*freq_max+1];
 }
 
 void wait_send_to_computer(void){
