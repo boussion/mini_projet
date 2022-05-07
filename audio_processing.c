@@ -28,13 +28,19 @@ static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
+//Different methods used to store the values of the angles
 static float stored_dir[5];
 static float sum_dir;
 
+//Stores the value of the last average direction calculated
 static float last_direction;
 
+//used to store the frequency in the analysed range with the largest amplitude
 static int freq_max;
+
+//used to count different iterations
 static int ooo;
+
 
 #define MIN_VALUE_THRESHOLD	10000 
 
@@ -117,9 +123,9 @@ bool sound_detection (void){
 bool detection_son(void){
 
 	return son_detection;
+}
 
-	}
-
+//function used to determine the average sound [NOT USED]
 float mean_sound(float* mic_nb){
 	float average = 0;
 	for(uint8_t i = FREQ_MVT_MIN; i <= FREQ_MVT_MAX; ++i){
@@ -151,9 +157,10 @@ void record_sound(void){
  *	int16_t *data			Buffer containing 4 times 160 samples. the samples are sorted by micro
  *							so we have [micRight1, micLeft1, micBack1, micFront1, micRight2, etc...]
  *	uint16_t num_samples	Tells how many data we get in total (should always be 640)
- */
+*/
 
 
+//Calculates the average direction over a period of 5 recordings
 float mean_dir(float* stored_dir){
 	float sum_dir=0;
 	for(int i=0; i<5; ++i){
@@ -242,18 +249,20 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		if(detection_son()){
 			//turn_puck(60);
 			float direction;
-			process_direction();
+			process_direction(); //process the direction of the detected sound
 			//chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", get_last_direction());
 
 		}
 	}
 }
 
+//function used to determine the location of the sound, as well as the necessary adjustments to get a readable value
 void process_direction (void){	
 	float direction;
 	direction = get_sound_direction(stored_mic[0], freq_max);
 	float direction2;
-	direction2 = rad_to_deg(direction);
+	direction2 = rad_to_deg(direction); //converts the radians to degrees
+
 	if(direction2 < 50){
 		//chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO LOOOOOWWW %d\r\n");
 		direction2=50;
@@ -262,8 +271,9 @@ void process_direction (void){
 		//chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO HIGGGHHHH %d\r\n");
 		direction2 = 140;
 	}
-	direction2=adjust_deg(direction2);
-	sum_dir = sum_dir + direction2;
+
+	direction2 = adjust_deg(direction2);
+	sum_dir = sum_dir + direction2; //Sums the values before dividing them
 	//chprintf((BaseSequentialStream*)&SD3,"direction 2: %f\r\n", direction2);
 	//chprintf((BaseSequentialStream*)&SD3,"sum_dir: %f\r\n", sum_dir);
 
