@@ -38,9 +38,6 @@ static float micBack_output[FFT_SIZE];
 #define FREQ_MVT_MIN	(FREQ_REF-1) // 1 984,375 Hz
 #define FREQ_MVT_MAX 	(FREQ_REF+1) // 2 015.625 Hz
 
-#define NB_ECHANTILLONS 10
-#define NB_ECHANTILLONS_DETECTES 5
-
 
 #define MIC_FRONT_RIGHT 1
 #define MIC_FRONT_LEFT 2
@@ -49,7 +46,7 @@ static float micBack_output[FFT_SIZE];
 #define NO_MIC 0
 
 // To set the amplitude at which a frequency is considered to be detected:
-#define AMPLITUDE_MIN 40000 // avoids detection of shocks to the structure
+#define AMPLITUDE_MIN 30000 // avoids detection of shocks to the structure
 
 // Sound detection:
 static	int  son_detection = 0; // Signal that indicates whether noise is detected
@@ -178,7 +175,8 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		nb_samples = 0;
 		mustSend++;
 
-		sound_analysis(micLeft_output);
+		//sound analysis with the front microphone
+		sound_analysis(micFront_output);
 	}
 }
 

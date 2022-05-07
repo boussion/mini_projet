@@ -17,18 +17,17 @@
 #include <communications.h>
 #include <arm_math.h>
 
-
 #define LIMITE_DETECTION 65536 // maximum uint16_t => 65536
 #define RAYON_CERCLE 180 // we consider a circle of radius 18 centimetres
 #define LIMITE_DISTANCE 20 // robot must stop 5 mm from the edge of the circle
 #define ERREUR_POSSIBLE 20 // error threshold
+#define ERROR_EDGE      40
 #define CORRECTION_FACTOR 48
 
 // Static values to represent the different distances:
 static int16_t distance_to_travel;
 static int16_t distance_to_edges;
 static int16_t distance_from_center;
-
 
 /*
  * adjustement_dist: Used to return the adjusted distance given by sensor
@@ -52,7 +51,7 @@ int16_t edge_distance(void){
 	int16_t dist = adjustement_dist();
 
 	//if the distance is less than the stopping distance in front of the edges + error range taken into account => distance to travel =0
-	if((dist <= (LIMITE_DISTANCE+ERREUR_POSSIBLE))){
+	if((dist <= (LIMITE_DISTANCE+ERROR_EDGE))){
 		distance_to_edges = 0;
 
 	}else{
@@ -90,7 +89,7 @@ int16_t update_distance(void){
 	edge_distance();
 
 	//if sound detected => robot reachs the edges
-	if(sound_detection()==1){
+	if(sound_detection()==0){
 		distance_to_travel = distance_to_edges;
 
 	//if sound not detected => robot stays in the centre

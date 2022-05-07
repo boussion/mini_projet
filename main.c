@@ -85,7 +85,6 @@ int main(void)
     //starts camera
     dcmi_start();
     po8030_start();
-
     process_image_start();
 
 

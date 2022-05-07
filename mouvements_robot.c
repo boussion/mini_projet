@@ -22,10 +22,9 @@
 #define IMAGE_BUFFER_SIZE 640
 #define MOTOR_SPEED_LIMIT 1100 // [step/s]
 #define KP					5
-#define KI 					0.5
+//#define KI 					0.5
 #define MAX_SUM_ERROR 	(MOTOR_SPEED_LIMIT/KI)
 #define MAX_ERROR		(MOTOR_SPEED_LIMIT/KP)
-
 
 
 /*
@@ -34,9 +33,9 @@
 int32_t pi_regulator(void){
 
 	//The error takes the value of update_distance()
-	int16_t error = update_distance();
+	int16_t error = 0;
 	float speed = 0;
-	static float sum_error = 0;
+	static int16_t sum_error = 0;
 
 	/*
 	//disables the PI regulator if the error is to small
@@ -46,18 +45,28 @@ int32_t pi_regulator(void){
 		return 0;
 	}
 	*/
-
+	error = update_distance();
 	sum_error += error;
 
+	/*
 	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
 	if(sum_error > MAX_SUM_ERROR){
 		sum_error = MAX_SUM_ERROR;
 	}else if(sum_error < -MAX_SUM_ERROR){
 		sum_error = -MAX_SUM_ERROR;
-	}
+	}*/
 
 	//speed calculation
-	speed = KP * error + KI * sum_error;
+	speed = KP * error;
+			//+ KI * sum_error;
+	if(speed > MAX_ERROR){
+			sum_error = MAX_ERROR;
+		}else if(sum_error < -MAX_ERROR){
+			sum_error = -MAX_ERROR;
+		}
+
+	//chprintf((BaseSequentialStream*)&SD3,"somme = %ld", sum_error);
+	//chprintf((BaseSequentialStream*)&SD3,"error = %ld", error);
 
 	return (int16_t)speed;
 }
@@ -83,13 +92,17 @@ static THD_FUNCTION(PRegulator, arg) {
 
     	        //computes the speed to give to the motors using the pi-regulator
     	        speed = pi_regulator();
+
+    	        chprintf((BaseSequentialStream*)&SD3,"distance= %u", adjustement_dist());
+
+
     	        //speed correction according to the position of the line to let the robot rotate to be in front of the line
     	        speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
     	        //speed_correction=0;
 
     	        //if the line is nearly in front of the camera, don't rotate
     	        //need to correct this value to allow the good recognition of the line
-    	        if(abs(speed_correction) < ROTATION_THRESHOLD){
+    	        if(abs(speed_correction) < ROTATION_THRESHOLD || adjustement_dist() <= 45){
     	        	speed_correction = 0;
     	        }
 
