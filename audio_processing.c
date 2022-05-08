@@ -46,7 +46,7 @@ static int ooo;
 
 
 // Frequencies studied:
-#define FREQ_REF	128   // 2 000 Hz
+#define FREQ_REF	30   // 2 000 Hz
 #define FREQ_MVT_MIN	(FREQ_REF-2) // 1 984,375 Hz
 #define FREQ_MVT_MAX 	(FREQ_REF+2) // 2 015.625 Hz
 #define FREQ_MVT_RANGE (FREQ_MVT_MAX-FREQ_MVT_MIN)	//MAX_FREQ-MIN_FREQ
@@ -242,7 +242,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 void process_direction (void){	
 	float direction;
 	select_freq();
-	direction = get_sound_direction(stored_mic[0], freq_max);
+	direction = get_sound_direction(stored_mic, freq_max);
 	float direction2;
 	direction2 = rad_to_deg(direction); //converts the radians to degrees
 
