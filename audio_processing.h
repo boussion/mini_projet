@@ -34,8 +34,6 @@ void select_freq(void);
 //DOUBLON, TO CLEAN
 bool sound_detection (void);
 
-
-bool detection_son (void);
 void move_round(float direction);
 
 void processAudioData(int16_t *data, uint16_t num_samples);

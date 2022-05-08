@@ -229,7 +229,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		mustSend++;
 		store_sound(nb_record);
 		sound_analysis(micFront_output);
-		if(detection_son()){
+		if(sound_detection()){
 			//turn_puck(60);
 			float direction;
 			process_direction(); //process the direction of the detected sound
