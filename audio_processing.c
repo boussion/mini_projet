@@ -45,15 +45,15 @@ static int ooo;
 #define MIN_VALUE_THRESHOLD	10000 
 
 
-// Bandpass filter:
-#define MIN_FREQ	115	// no sound detected before 1 796,875 Hz
-#define MAX_FREQ	140 // no sound detected after 2 187,5 Hz
-
 // Frequencies studied:
 #define FREQ_REF	128   // 2 000 Hz
 #define FREQ_MVT_MIN	(FREQ_REF-2) // 1 984,375 Hz
 #define FREQ_MVT_MAX 	(FREQ_REF+2) // 2 015.625 Hz
 #define FREQ_MVT_RANGE (FREQ_MVT_MAX-FREQ_MVT_MIN)	//MAX_FREQ-MIN_FREQ
+
+// Bandpass filter:
+#define MIN_FREQ	FREQ_REF-12	// no sound detected before 1 796,875 Hz
+#define MAX_FREQ	FREQ_REF+12 // no sound detected after 2 187,5 Hz
 
 #define NB_SAMPLES 100 //Nb de samples enregistr�s pour localiser le son
 
@@ -131,12 +131,6 @@ bool sound_detection (void){
 
 }
 
-//A VIRER SI RECHECK
-
-bool detection_son(void){
-
-	return son_detection;
-}
 
 //function used to determine the average sound [NOT USED]
 float mean_sound(float* mic_nb){
@@ -147,30 +141,6 @@ float mean_sound(float* mic_nb){
 	average = average/(FREQ_MVT_RANGE+1);
 	return average;
 }
-
-//Enregistre le son des micros
-void record_sound(void){
-	chprintf((BaseSequentialStream*)&SD3,"sound in %d\n");
-
-	//for(uint16_t i=0; i<NB_SAMPLES; ++i){
-	//	recorded_sound_1[i]=mean_sound(micRight_output);
-	//	recorded_sound_2[i]=mean_sound(micLeft_output);
-	//	recorded_sound_3[i]=mean_sound(micBack_output);
-	//}
-	chprintf((BaseSequentialStream*)&SD3,"sound done %d\n");
-
-}
-
-
-/*
- *	Callback called when the demodulation of the four microphones is done.
- *	We get 160 samples per mic every 10ms (16kHz)
- *
- *	params :
- *	int16_t *data			Buffer containing 4 times 160 samples. the samples are sorted by micro
- *							so we have [micRight1, micLeft1, micBack1, micFront1, micRight2, etc...]
- *	uint16_t num_samples	Tells how many data we get in total (should always be 640)
-*/
 
 
 //Calculates the average direction over a period of 5 recordings
