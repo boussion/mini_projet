@@ -66,7 +66,7 @@ static int ooo;
 // To set the amplitude at which a frequency is considered to be detected:
 #define AMPLITUDE_MIN 30000 // avoids detection of shocks to the structure
 
-static struct Mic_Record stored_mic[NB_SAMPLES];
+static struct Mic_Record stored_mic;
 
 
 // Sound detection:
@@ -167,7 +167,6 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 
 	static uint16_t nb_samples = 0;
 	static uint8_t mustSend = 0;
-	static uint16_t nb_record = 0;
 
 	//loop to fill the buffers
 	for(uint16_t i = 0 ; i < num_samples ; i+=4){
@@ -227,7 +226,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		}
 		nb_samples = 0;
 		mustSend++;
-		store_sound(nb_record);
+		store_sound();
 		sound_analysis(micFront_output);
 		if(sound_detection()){
 			//turn_puck(60);
@@ -277,7 +276,7 @@ float get_last_direction(void){
 }
 
 //Stores the sound in a structure in order to send them to the location function
-void store_sound(uint16_t nb_record){
+void store_sound(void){
 	/*
 	if(ooo>5){
 		chprintf((BaseSequentialStream*)&SD3,"val0: %f\r\n", micRight_output[FREQ_REF-2]);
@@ -293,12 +292,12 @@ void store_sound(uint16_t nb_record){
 		}
 	}
 	*/
-	stored_mic[nb_record].Mic0real = micRight_cmplx_input[2*freq_max];
-	stored_mic[nb_record].Mic1real = micLeft_cmplx_input[2*freq_max];
-	stored_mic[nb_record].Mic2real = micBack_cmplx_input[2*freq_max];
-	stored_mic[nb_record].Mic0cplx = micRight_cmplx_input[2*freq_max+1];
-	stored_mic[nb_record].Mic1cplx = micLeft_cmplx_input[2*freq_max+1];
-	stored_mic[nb_record].Mic2cplx = micBack_cmplx_input[2*freq_max+1];
+	stored_mic.Mic0real = micRight_cmplx_input[2*freq_max];
+	stored_mic.Mic1real = micLeft_cmplx_input[2*freq_max];
+	stored_mic.Mic2real = micBack_cmplx_input[2*freq_max];
+	stored_mic.Mic0cplx = micRight_cmplx_input[2*freq_max+1];
+	stored_mic.Mic1cplx = micLeft_cmplx_input[2*freq_max+1];
+	stored_mic.Mic2cplx = micBack_cmplx_input[2*freq_max+1];
 }
 
 void wait_send_to_computer(void){

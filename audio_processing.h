@@ -42,7 +42,7 @@ uint16_t correction_detection_son(void);
 
 float mean_sound(float* mic_nb);
 
-void store_sound(uint16_t nb_record);
+void store_sound(void);
 
 
 /*
