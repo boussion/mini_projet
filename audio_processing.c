@@ -110,6 +110,19 @@ void sound_analysis(float* data){
 	}
 }
 
+
+//Selects the frequency with the highest amplistude between FREQ_REF-2 and FREQ_REF+2
+void select_freq(void){
+	freq_max=FREQ_REF-2;
+	float  val_max=micFront_output[FREQ_REF-2];
+	for(int i=0;i<4;++i){
+		if(val_max<micFront_output[FREQ_REF-1+i]){
+			val_max = micFront_output[FREQ_REF-1+i];
+			freq_max = FREQ_REF-1+i;
+		}
+	}
+}
+
 /* sound_detection : allows you to indicate the detection of a sound in another file
  */
 bool sound_detection (void){
@@ -277,8 +290,7 @@ void process_direction (void){
 	//chprintf((BaseSequentialStream*)&SD3,"direction 2: %f\r\n", direction2);
 	//chprintf((BaseSequentialStream*)&SD3,"sum_dir: %f\r\n", sum_dir);
 
-
-	++ooo;
+	++ooo; //counter to make sure we get to 5 values before averaging the directions
 	if(ooo > 4){
 		//chprintf((BaseSequentialStream*)&SD3,"ooo: %d\r\n", ooo);
 		//chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", sum_dir/5);
@@ -288,20 +300,13 @@ void process_direction (void){
 	}
 }
 
+//Self explanatory
 float get_last_direction(void){
 	return last_direction;
 }
 
-void move_round(float direction){
-
-}
-
-
-
+//Stores the sound in a structure in order to send them to the location function
 void store_sound(uint16_t nb_record){
-	nb_record = 0; //COMMENT IF NEED MORE THAN 1 SAMPLE
-	int freq_max = FREQ_REF;
-	float val_max = micRight_output[FREQ_REF-1];
 	/*
 	if(ooo>5){
 		chprintf((BaseSequentialStream*)&SD3,"val0: %f\r\n", micRight_output[FREQ_REF-2]);
@@ -328,6 +333,7 @@ void store_sound(uint16_t nb_record){
 void wait_send_to_computer(void){
 	chBSemWait(&sendToComputer_sem);
 }
+
 
 float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	if(name == LEFT_CMPLX_INPUT){

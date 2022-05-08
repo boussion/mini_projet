@@ -26,7 +26,7 @@ void process_direction (void);
 
 float get_last_direction(void);
 
-
+void select_freq(void);
 
 /* sound_detection : allows you to indicate the detection of a sound in another file
  */
