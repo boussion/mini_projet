@@ -12,28 +12,24 @@
 #include <main.h>
 #include <usbcfg.h>
 #include <chprintf.h>
+#include "leds.h"
 
 #include <audio_processing.h>
 #include <communications.h>
 #include <arm_math.h>
 
-#define LIMITE_DETECTION 65536 // maximum uint16_t => 65536
-#define RAYON_CERCLE 230 // we consider a circle of radius 18 centimetres
-#define LIMITE_DISTANCE 20 // robot must stop 5 mm from the edge of the circle
-#define ERREUR_POSSIBLE 20 // error threshold
-#define ERROR_EDGE      40
-#define CORRECTION_FACTOR 48
+#define LIMITE_DETECTION 	65536 // maximum uint16_t => 65536
+#define RAYON_CERCLE 		230 // we consider a circle of radius 18 centimetres
+#define LIMITE_DISTANCE 	20 // robot must stop 5 mm from the edge of the circle
+#define ERREUR_POSSIBLE 	20 // error threshold
+#define ERROR_EDGE      	40
+#define CORRECTION_FACTOR 	48
+#define LED_INTENSITY   	100
 
 // Static values to represent the different distances:
 static int16_t distance_to_travel;
 static int16_t distance_to_edges;
 static int16_t distance_from_center;
-
-
-#define LED2 0
-#define LED4 1
-#define LED6 2
-#define LED8 3
 
 
 /*
@@ -60,6 +56,11 @@ int16_t edge_distance(void){
 	//if the distance is less than the stopping distance in front of the edges + error range taken into account => distance to travel =0
 	if((dist <= (LIMITE_DISTANCE+ERROR_EDGE))){
 		distance_to_edges = 0;
+		set_led(LED1, LED_INTENSITY);
+        set_led(LED3, LED_INTENSITY);
+        set_led(LED7, LED_INTENSITY);
+		set_rgb_led(LED2, BLUE_LED ,LED_INTENSITY);
+        set_rgb_led(LED8, BLUE_LED ,LED_INTENSITY);
 
 	}else{
 		distance_to_edges = dist;
