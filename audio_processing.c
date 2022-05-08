@@ -243,7 +243,6 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 void process_direction (void){	
 	float direction;
 	select_freq();
-	direction = get_sound_direction(stored_mic[0], freq_max);
 	float direction2;
 	direction2 = rad_to_deg(direction); //converts the radians to degrees
 

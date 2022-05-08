@@ -29,6 +29,13 @@ static int16_t distance_to_travel;
 static int16_t distance_to_edges;
 static int16_t distance_from_center;
 
+
+#define LED2 0
+#define LED4 1
+#define LED6 2
+#define LED8 3
+
+
 /*
  * adjustement_dist: Used to return the adjusted distance given by sensor
  */
@@ -99,6 +106,34 @@ int16_t update_distance(void){
 	}
 	return distance_to_travel;
 }
+
+/*
+ * play_with_leds: Turn on the LEDs when the edge is reached
+ */
+void play_with_leds(void){
+	if(sound_detection()==0){
+
+		set_rgb_led(LED2,0,0,1);
+	}
+}
+	/*
+	void set_rgb_led(rgb_led_name_t led_number, uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
+		rgb_led[led_number][RED_LED] = red_val;
+		rgb_led[led_number][GREEN_LED] = green_val;
+		rgb_led[led_number][BLUE_LED] = blue_val;
+	}
+
+	*/
+	/*
+	typedef enum {
+		LED2,
+		LED4,
+		LED6,
+		LED8,
+		NUM_RGB_LED,
+	} rgb_led_name_t;
+*/
+
 
 
 

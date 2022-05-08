@@ -105,6 +105,8 @@ static THD_FUNCTION(PRegulator, arg) {
     	    	//We recover the time of the system
     	        time = chVTGetSystemTime();
 
+    	        play_with_leds();
+
     	        //computes the speed to give to the motors using the pi-regulator
     	        speed = p_regulator();
 
@@ -120,7 +122,6 @@ static THD_FUNCTION(PRegulator, arg) {
     	        	speed_correction_sound=0;
     	        }
 
-
     	        //speed correction according to the position of the line
     	        speed_correction_line = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
 
@@ -131,10 +132,7 @@ static THD_FUNCTION(PRegulator, arg) {
 
     	        //corrections + speed => in the motors
     	       right_motor_set_speed( speed - ROTATION_COEFF_LINE * speed_correction_line+ ROTATION_COEFF_SOUND * speed_correction_sound);
-    	        left_motor_set_speed( speed + ROTATION_COEFF_LINE * speed_correction_line - ROTATION_COEFF_SOUND * speed_correction_sound);
-    	       // right_motor_set_speed( speed - ROTATION_COEFF_LINE * speed_correction_line);
-    	        //left_motor_set_speed( speed + ROTATION_COEFF_LINE * speed_correction_line);
-
+    	       left_motor_set_speed( speed + ROTATION_COEFF_LINE * speed_correction_line - ROTATION_COEFF_SOUND * speed_correction_sound);
 
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));

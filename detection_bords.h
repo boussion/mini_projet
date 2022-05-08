@@ -29,5 +29,10 @@ int16_t centre_distance(void);
  */
 int16_t update_distance(void);
 
+/*
+ * play_with_leds: Turn on the LEDs when the edge is reached
+ */
+void play_with_leds(void);
+
 
 #endif /* DETECTION_BORDS_H_ */
