@@ -52,6 +52,7 @@ static int ooo;
 #define FREQ_MVT_RANGE (FREQ_MVT_MAX-FREQ_MVT_MIN)	//MAX_FREQ-MIN_FREQ
 
 // Bandpass filter:
+// Ba	ndpass filter:
 #define MIN_FREQ	FREQ_REF-12	// no sound detected before 1 796,875 Hz
 #define MAX_FREQ	FREQ_REF+12 // no sound detected after 2 187,5 Hz
 
@@ -229,7 +230,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		mustSend++;
 		store_sound(nb_record);
 		sound_analysis(micFront_output);
-		if(detection_son()){
+		if(sound_detection()){
 			//turn_puck(60);
 			float direction;
 			process_direction(); //process the direction of the detected sound

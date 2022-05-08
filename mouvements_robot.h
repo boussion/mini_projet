@@ -10,9 +10,9 @@
 
 
 /*
- *  pi_regulator_long: allows you to determine a forward or backward speed of the robot
+ *  p_regulator: allows you to determine a forward or backward speed of the robot
  */
-int32_t pi_regulator(void);
+int32_t p_regulator(void);
 
 /*
  * movements_start : allows the activation of the PRegulator thread

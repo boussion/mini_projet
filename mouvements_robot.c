@@ -20,25 +20,32 @@
 #define ROTATION_THRESHOLD 50
 #define ERROR_THRESHOLD  10
 #define ERROR_THRESHOLD_SOUND 2
-#define ROTATION_COEFF_LINE 0.25
-#define ROTATION_COEFF_SOUND 10
+#define ROTATION_COEFF_LINE 0.5
+#define ROTATION_COEFF_SOUND 11
 #define IMAGE_BUFFER_SIZE 640
 #define MOTOR_SPEED_LIMIT 1100 // [step/s]
-#define KP					5
-//#define KI 					0.5
+#define KP					3
+#define KP_RETURN 			6
 #define MAX_SUM_ERROR 	(MOTOR_SPEED_LIMIT/KI)
 #define MAX_ERROR		(MOTOR_SPEED_LIMIT/KP)
 
 /*
- *  pi_regulator_long: allows to determine a forward or backward speed of the robot
+ *  p_regulator: allows to determine a forward or backward speed of the robot
  * 	modified to only work with update_distance
  */
-int32_t pi_regulator(void){
+int32_t p_regulator(void){
 
 	//The error takes the value of update_distance()
 	int16_t error = 0;
 	float speed = 0;
 	static int16_t sum_error = 0;
+	int8_t Kp =0;
+
+	if(sound_detection()==1){
+		Kp=KP;
+	}else{
+		Kp=KP_RETURN;
+	}
 
 	/*
 	//disables the PI regulator if the error is to small
@@ -60,7 +67,9 @@ int32_t pi_regulator(void){
 	}*/
 
 	//speed calculation
-	speed = KP * error;
+
+
+	speed = Kp * error;
 			//+ KI * sum_error;
 	if(speed > MAX_ERROR){
 			sum_error = MAX_ERROR;
@@ -97,51 +106,35 @@ static THD_FUNCTION(PRegulator, arg) {
     	        time = chVTGetSystemTime();
 
     	        //computes the speed to give to the motors using the pi-regulator
-    	        speed = pi_regulator();
+    	        speed = p_regulator();
 
+    	        //speed correction according to the sound direction : sound must be detected + adjustement in proximity of the center
 
-
-    	        //speed correction according to the position of the line to let the robot rotate to be in front of the line
-    	       // speed_correction_line = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
-
-    	        if(sound_detection()==1){
+    	        if(sound_detection()==1  && (adjustement_dist()>=120)){
     	        	speed_correction_sound = (int16_t)get_last_direction();
     	        }else{
     	        	speed_correction_sound = 0;
     	        }
-
+    	        //range for the sound speed correction
     	        if((speed_correction_sound>=-ERROR_THRESHOLD_SOUND) && (speed_correction_sound<=ERROR_THRESHOLD_SOUND)){
     	        	speed_correction_sound=0;
     	        }
-    	        //speed_correction=0;
 
-    	        //if the line is nearly in front of the camera, don't rotate
-    	        //need to correct this value to allow the good recognition of the line
-    	        if(abs(speed_correction_line) < ROTATION_THRESHOLD || adjustement_dist() <= 45 || adjustement_dist()>=180){
+
+    	        //speed correction according to the position of the line
+    	        speed_correction_line = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
+
+    	        //line speed correction : correction miuts be in a certain range + no correction in center (image is not enough precise)
+    	        if((abs(speed_correction_line) < ROTATION_THRESHOLD) || (adjustement_dist()>=160)){
     	        	speed_correction_line = 0;
     	        }
 
-    	        /*
-    	        if(abs(speed_correction_sound) < ROTATION_THRESHOLD){
-    	        	speed_correction_sound = 0;
-    	        }
-    	        */
+    	        //corrections + speed => in the motors
+    	       right_motor_set_speed( speed - ROTATION_COEFF_LINE * speed_correction_line+ ROTATION_COEFF_SOUND * speed_correction_sound);
+    	        left_motor_set_speed( speed + ROTATION_COEFF_LINE * speed_correction_line - ROTATION_COEFF_SOUND * speed_correction_sound);
+    	       // right_motor_set_speed( speed - ROTATION_COEFF_LINE * speed_correction_line);
+    	        //left_motor_set_speed( speed + ROTATION_COEFF_LINE * speed_correction_line);
 
-
-
-				//applies the speed from the PI regulator and the correction for the rotation on the motors
-				//right_motor_set_speed(speed - ROTATION_COEFF_LINE * speed_correction_line);
-				//left_motor_set_speed(speed + ROTATION_COEFF_LINE * speed_correction_line);
-
-    	     // right_motor_set_speed(speed - ROTATION_COEFF * speed_correction_sound);
-    	      //left_motor_set_speed(speed + ROTATION_COEFF * speed_correction_sound);
-
-    	        right_motor_set_speed( speed + ROTATION_COEFF_SOUND * speed_correction_sound);
-    	        left_motor_set_speed( speed - ROTATION_COEFF_SOUND * speed_correction_sound);
-
-
-				//chprintf((BaseSequentialStream*)&SD3,"error = %ld", distance_centre());
-				//chprintf((BaseSequentialStream*)&SD3,"capture = %ld", capture());
 
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
