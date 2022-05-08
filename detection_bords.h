@@ -34,5 +34,7 @@ int16_t update_distance(void);
  */
 void play_with_leds(void);
 
+void play_leds(void);
+
 
 #endif /* DETECTION_BORDS_H_ */

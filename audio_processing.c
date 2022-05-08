@@ -235,6 +235,9 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 			//chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", get_last_direction());
 
 		}
+		else{
+			clear_leds();
+		}
 	}
 }
 

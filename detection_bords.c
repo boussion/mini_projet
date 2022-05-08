@@ -56,15 +56,9 @@ int16_t edge_distance(void){
 	//if the distance is less than the stopping distance in front of the edges + error range taken into account => distance to travel =0
 	if((dist <= (LIMITE_DISTANCE+ERROR_EDGE))){
 		distance_to_edges = 0;
-		set_led(LED1, LED_INTENSITY);
-        set_led(LED3, LED_INTENSITY);
-        set_led(LED7, LED_INTENSITY);
-		set_rgb_led(LED2, BLUE_LED ,LED_INTENSITY);
-        set_rgb_led(LED8, BLUE_LED ,LED_INTENSITY);
-
+		play_leds();
 	}else{
 		distance_to_edges = dist;
-
 	}
 	return distance_to_edges;
 }
@@ -135,7 +129,13 @@ void play_with_leds(void){
 	} rgb_led_name_t;
 */
 
-
+play_leds(){
+		set_led(LED1, LED_INTENSITY);
+        set_led(LED3, LED_INTENSITY);
+        set_led(LED7, LED_INTENSITY);
+		set_rgb_led(LED2, BLUE_LED ,LED_INTENSITY);
+        set_rgb_led(LED8, BLUE_LED ,LED_INTENSITY);
+}
 
 
 
