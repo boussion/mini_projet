@@ -111,7 +111,7 @@ void sound_analysis(float* data){
 }
 
 
-//Selects the frequency with the highest amplistude between FREQ_REF-2 and FREQ_REF+2
+//Selects the frequency with the highest amplitude between FREQ_REF-2 and FREQ_REF+2
 void select_freq(void){
 	freq_max=FREQ_REF-2;
 	float  val_max=micFront_output[FREQ_REF-2];
@@ -367,54 +367,4 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 }
 
 
-
-/*
- *	deux_microphones_a_proximite: permet de d�terminer les deux microphones les plus proches de la provenance du bruit en mettant � jour la variable statique micro_a_proximite
- */
-
-/*
-void deux_microphones_a_proximite(void){
-
-	uint16_t moyenne_front = 0;
-	uint16_t moyenne_back = 0;
-	uint16_t moyenne_right = 0;
-	uint16_t moyenne_left = 0;
-
-	for(int i=FREQ_MVT_MIN; i<FREQ_MVT_MAX; i++){
-
-		moyenne_front = micFront_output[i] + moyenne_front;
-		moyenne_back = micBack_output[i] + moyenne_back;
-		moyenne_right = micRight_output[i] + moyenne_right;
-		moyenne_left = micLeft_output[i] + moyenne_left;
-
-		moyenne_front = moyenne_front / 3;
-		moyenne_back = moyenne_back / 3;
-		moyenne_right = moyenne_right / 3;
-		moyenne_left = moyenne_left / 3;
-
-	}
-
-	if(detection_son()==1){
-
-		if((moyenne_front > moyenne_back) && (moyenne_front > moyenne_right) && (moyenne_front > moyenne_left) && (moyenne_right > moyenne_left)){
-			micro_a_proximite = MIC_FRONT_RIGHT;
-
-		}else{
-			if((moyenne_front > moyenne_back) && (moyenne_front > moyenne_right) && (moyenne_front > moyenne_left)){
-				micro_a_proximite = MIC_FRONT_LEFT;
-
-			}else{
-				if((moyenne_left > moyenne_right) && (moyenne_left > moyenne_back)){
-					micro_a_proximite = MIC_LEFT_BACK;
-
-				}else{
-					micro_a_proximite = MIC_RIGHT_BACK;
-				}
-			}
-		}
-	}else{
-		micro_a_proximite=0;
-	}
-}
-*/
 
