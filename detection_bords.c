@@ -35,6 +35,14 @@ static int16_t distance_from_center;
 /*
  * adjustement_dist: Used to return the adjusted distance given by sensor
  */
+
+void set_front_leds(void){
+		set_led(LED1, LED_INTENSITY);
+        set_led(LED3, LED_INTENSITY);
+        set_led(LED7, LED_INTENSITY);
+}
+
+
 uint16_t adjustement_dist(void) {
 
 	uint16_t dist_mm = VL53L0X_get_dist_mm() - CORRECTION_FACTOR; //correction of the error
@@ -56,7 +64,7 @@ int16_t edge_distance(void){
 	//if the distance is less than the stopping distance in front of the edges + error range taken into account => distance to travel =0
 	if((dist <= (LIMITE_DISTANCE+ERROR_EDGE))){
 		distance_to_edges = 0;
-		play_leds();
+		set_front_leds();
 	}else{
 		distance_to_edges = dist;
 	}
@@ -105,12 +113,7 @@ int16_t update_distance(void){
 /*
  * play_with_leds: Turn on the LEDs when the edge is reached
  */
-void play_with_leds(void){
-	if(sound_detection()==0){
 
-		set_rgb_led(LED2,0,0,1);
-	}
-}
 	/*
 	void set_rgb_led(rgb_led_name_t led_number, uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
 		rgb_led[led_number][RED_LED] = red_val;
@@ -129,13 +132,7 @@ void play_with_leds(void){
 	} rgb_led_name_t;
 */
 
-void play_leds(void){
-		set_led(LED1, LED_INTENSITY);
-        set_led(LED3, LED_INTENSITY);
-        set_led(LED7, LED_INTENSITY);
-		set_rgb_led(LED2, BLUE_LED ,LED_INTENSITY);
-        set_rgb_led(LED8, BLUE_LED ,LED_INTENSITY);
-}
+
 
 
 

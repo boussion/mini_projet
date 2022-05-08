@@ -282,21 +282,7 @@ float get_last_direction(void){
 
 //Stores the sound in a structure in order to send them to the location function
 void store_sound(void){
-	/*
-	if(ooo>5){
-		chprintf((BaseSequentialStream*)&SD3,"val0: %f\r\n", micRight_output[FREQ_REF-2]);
-		chprintf((BaseSequentialStream*)&SD3,"val1: %f\r\n", micRight_output[FREQ_REF]);
-		chprintf((BaseSequentialStream*)&SD3,"val2: %f\r\n", micRight_output[FREQ_REF+2]);
-	}
-	*/
-	/*
-	for(int i=0; i<1; ++i){
-		if (micRight_output[FREQ_REF+i]>val_max){
-			val_max=micRight_output[FREQ_REF+i];
-			freq_max = FREQ_REF+i;
-		}
-	}
-	*/
+
 	stored_mic.Mic0real = micRight_cmplx_input[2*freq_max];
 	stored_mic.Mic1real = micLeft_cmplx_input[2*freq_max];
 	stored_mic.Mic2real = micBack_cmplx_input[2*freq_max];
