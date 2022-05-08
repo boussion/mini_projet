@@ -46,6 +46,8 @@ static int iii;
 #define FREQ_REF 2000
 #define FREQ_REF_INDEX 128
 
+static int max_freq;
+
 
 //int new_sample;
 float mean_table[3][MEAN_MAX];
@@ -91,7 +93,7 @@ float get_arg(float real, float complex){
 float get_sound_direction(struct Mic_Record stored_mic, int freq_max)
 {
 	float direction;
-
+	max_freq=freq_max;
 	reassign_table(stored_mic); //reassigns the stored values in an array of arrays so that it's easier to analyse
 
 	//filter_signal();        // filters the signals
@@ -223,7 +225,7 @@ float find_delta_t_phase(int mic1_nb, int mic2_nb){
 	float arg1, arg2;
 	arg1=get_arg(bufferOutput[mic1_nb][0],bufferOutput[mic1_nb][1]);
 	arg2=get_arg(bufferOutput[mic2_nb][0],bufferOutput[mic2_nb][1]);
-	delta_t = (1024*0.001*(arg1-arg2))/(2*PI*FREQ_REF_INDEX);
+	delta_t = (1024*0.001*(arg1-arg2))/(2*PI*max_freq);
 	return delta_t;
 }
 
