@@ -17,31 +17,30 @@ typedef enum {
 	BACK_OUTPUT
 } BUFFER_NAME_t;
 
-/* sound_analysis: Detects a sound frequency between 1984.375 Hz and 2015.625 Hz and updates the static variable
- */
+/* 
+	sound_analysis: Detects a sound frequency between 1984.375 Hz and 2015.625 Hz and updates the static variable
+*/
 void sound_analysis(float* data);
 
+//function used to determine the location of the sound, as well as the necessary adjustments to get a readable value
 void process_direction (void);	
 
-
+//Exports the last direction in memory
 float get_last_direction(void);
 
+//Selects the frequency with the highest amplitude between FREQ_REF-2 and FREQ_REF+2
 void select_freq(void);
 
-/* sound_detection : allows you to indicate the detection of a sound in another file
- */
-
-//DOUBLON, TO CLEAN
+/* 
+	sound_detection : allows you to indicate the detection of a sound in another file
+*/
 bool sound_detection (void);
 
-void move_round(float direction);
 
 void processAudioData(int16_t *data, uint16_t num_samples);
 
-uint16_t correction_detection_son(void);
 
-float mean_sound(float* mic_nb);
-
+//Stores the sound in a structure in order to send them to the location function
 void store_sound(void);
 
 
