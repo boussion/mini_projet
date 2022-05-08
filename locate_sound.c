@@ -100,7 +100,7 @@ float get_sound_direction(struct Mic_Record stored_mic, int freq_max)
 
 	direction = calculate_direction();   // do all the calculations where the sound is coming from
 
-	show_led(direction);    // indicate where the sound is coming from
+	//show_led(direction);    // indicate where the sound is coming from
 
 	return direction;
 }
