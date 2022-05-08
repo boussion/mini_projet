@@ -32,15 +32,17 @@ static int16_t distance_to_edges;
 static int16_t distance_from_center;
 
 
-/*
- * adjustement_dist: Used to return the adjusted distance given by sensor
- */
 
+//Sets leds
 void set_front_leds(void){
 		set_led(LED1, LED_INTENSITY);
         set_led(LED3, LED_INTENSITY);
         set_led(LED7, LED_INTENSITY);
 }
+
+/*
+ * adjustement_dist: Used to return the adjusted distance given by sensor
+*/
 
 
 uint16_t adjustement_dist(void) {
@@ -64,7 +66,7 @@ int16_t edge_distance(void){
 	//if the distance is less than the stopping distance in front of the edges + error range taken into account => distance to travel =0
 	if((dist <= (LIMITE_DISTANCE+ERROR_EDGE))){
 		distance_to_edges = 0;
-		set_front_leds();
+		set_front_leds(); //sets leds when the e puck is close to the wall
 	}else{
 		distance_to_edges = dist;
 	}
@@ -109,28 +111,6 @@ int16_t update_distance(void){
 	}
 	return distance_to_travel;
 }
-
-/*
- * play_with_leds: Turn on the LEDs when the edge is reached
- */
-
-	/*
-	void set_rgb_led(rgb_led_name_t led_number, uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
-		rgb_led[led_number][RED_LED] = red_val;
-		rgb_led[led_number][GREEN_LED] = green_val;
-		rgb_led[led_number][BLUE_LED] = blue_val;
-	}
-
-	*/
-	/*
-	typedef enum {
-		LED2,
-		LED4,
-		LED6,
-		LED8,
-		NUM_RGB_LED,
-	} rgb_led_name_t;
-*/
 
 
 
