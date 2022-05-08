@@ -34,8 +34,6 @@ void select_freq(void);
 //DOUBLON, TO CLEAN
 bool sound_detection (void);
 
-
-bool detection_son (void);
 void move_round(float direction);
 
 void processAudioData(int16_t *data, uint16_t num_samples);
@@ -43,8 +41,8 @@ void processAudioData(int16_t *data, uint16_t num_samples);
 uint16_t correction_detection_son(void);
 
 float mean_sound(float* mic_nb);
-void record_sound(void);
-void store_sound(uint16_t nb_record);
+
+void store_sound(void);
 
 
 /*
@@ -56,11 +54,5 @@ void wait_send_to_computer(void);
 *	Returns the pointer to the BUFFER_NAME_t buffer asked
 */
 float* get_audio_buffer_ptr(BUFFER_NAME_t name);
-
-//void frequency_detection_start(void);
-
-//void deux_microphones_a_proximite(void);
-
-//int16_t determination_angle_rotation(void);
 
 #endif /* AUDIO_PROCESSING_H */
