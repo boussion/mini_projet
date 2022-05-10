@@ -19,6 +19,8 @@ int32_t p_regulator(void);
  */
 void movements_start(void);
 
+void correction(void);
+
 
 
 #endif /* MOUVEMENTS_ROBOT_H_ */

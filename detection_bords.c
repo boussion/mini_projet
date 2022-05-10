@@ -12,17 +12,19 @@
 #include <main.h>
 #include <usbcfg.h>
 #include <chprintf.h>
+#include <leds.h>
 
 #include <audio_processing.h>
 #include <communications.h>
 #include <arm_math.h>
 
 #define LIMITE_DETECTION 65536 // maximum uint16_t => 65536
-#define RAYON_CERCLE 230 // we consider a circle of radius 18 centimetres
-#define LIMITE_DISTANCE 20 // robot must stop 5 mm from the edge of the circle
+#define RAYON_CERCLE 235 // we consider a circle of radius 18 centimetres
+#define LIMITE_DISTANCE 10 //
 #define ERREUR_POSSIBLE 20 // error threshold
 #define ERROR_EDGE      40
-#define CORRECTION_FACTOR 48
+#define CORRECTION_FACTOR_1 0.8818 //48
+#define CORRECTION_FACTOR_2 37.559
 
 // Static values to represent the different distances:
 static int16_t distance_to_travel;
@@ -30,18 +32,12 @@ static int16_t distance_to_edges;
 static int16_t distance_from_center;
 
 
-#define LED2 0
-#define LED4 1
-#define LED6 2
-#define LED8 3
-
-
 /*
  * adjustement_dist: Used to return the adjusted distance given by sensor
  */
 uint16_t adjustement_dist(void) {
 
-	uint16_t dist_mm = VL53L0X_get_dist_mm() - CORRECTION_FACTOR; //correction of the error
+	uint16_t dist_mm =(uint16_t)(VL53L0X_get_dist_mm())*CORRECTION_FACTOR_1 - CORRECTION_FACTOR_2 ; //correction of the error
 
 	// avoid distance overflow due to sensor instability
 	if( (dist_mm>=(LIMITE_DETECTION-6))){
@@ -81,7 +77,6 @@ int16_t centre_distance(void){
 
 	}else{
 		distance_from_center = (dist-RAYON_CERCLE);
-
 	}
 	return distance_from_center;
 }
@@ -112,8 +107,7 @@ int16_t update_distance(void){
  */
 void play_with_leds(void){
 	if(sound_detection()==0){
-
-		set_rgb_led(LED2,0,0,1);
+		set_rgb_led(LED4,0,0,1);
 	}
 }
 	/*

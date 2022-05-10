@@ -15,6 +15,8 @@
 #include <detection_ligne.h>
 #include <audio_processing.h>
 #include <locate_sound.h>
+#include "sensors/VL53L0X/VL53L0X.h"
+
 
 
 #define ROTATION_THRESHOLD 50
@@ -28,6 +30,7 @@
 #define KP_RETURN 			6
 #define MAX_SUM_ERROR 	(MOTOR_SPEED_LIMIT/KI)
 #define MAX_ERROR		(MOTOR_SPEED_LIMIT/KP)
+
 
 /*
  *  p_regulator: allows to determine a forward or backward speed of the robot
@@ -47,24 +50,8 @@ int32_t p_regulator(void){
 		Kp=KP_RETURN;
 	}
 
-	/*
-	//disables the PI regulator if the error is to small
-	//this avoids to always move as we cannot exactly be where we want and
-	//the camera is a bit noisy
-	if(abs(error) < ERROR_THRESHOLD){
-		return 0;
-	}
-	*/
 	error = update_distance();
 	sum_error += error;
-
-	/*
-	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
-	if(sum_error > MAX_SUM_ERROR){
-		sum_error = MAX_SUM_ERROR;
-	}else if(sum_error < -MAX_SUM_ERROR){
-		sum_error = -MAX_SUM_ERROR;
-	}*/
 
 	//speed calculation
 
@@ -83,6 +70,27 @@ int32_t p_regulator(void){
 	return (int16_t)speed;
 }
 
+void correction(void){
+
+	int32_t distance_rotation=0;
+
+	if(sound_detection()==0 && update_distance()>=200){
+	//on peut déterminer une rotation en faisant le tourner le robot jusqu'à get_last distance soit égale à celle qu'on veut même vitessepour les moteurs
+		while( distance_rotation<=right_motor_get_pos()){
+			left_motor_set_speed(-80);
+			right_motor_set_speed(80);
+
+			//Si la distance à parcourir elle est
+			if(update_distance()>=0+ERROR_THRESHOLD && update_distance()<=0-ERROR_THRESHOLD){
+				left_motor_set_speed(p_regulator());
+				right_motor_set_speed(p_regulator());
+			}
+		}
+	}
+}
+
+
+
 /*
  * PRegulator : allows the update of the speed of the motors with the pi regulator
  */
@@ -98,14 +106,14 @@ static THD_FUNCTION(PRegulator, arg) {
     	    int16_t speed = 0;
     	    int16_t speed_correction_line = 0;
     	    int16_t speed_correction_sound = 0;
-    	    //float speed_correction_sound=0;
 
     	    while(1){
 
     	    	//We recover the time of the system
     	        time = chVTGetSystemTime();
 
-    	        play_with_leds();
+    	        chprintf((BaseSequentialStream*)&SD3,"Distance  = %u", adjustement_dist());
+
 
     	        //computes the speed to give to the motors using the pi-regulator
     	        speed = p_regulator();
@@ -126,7 +134,7 @@ static THD_FUNCTION(PRegulator, arg) {
     	        speed_correction_line = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
 
     	        //line speed correction : correction miuts be in a certain range + no correction in center (image is not enough precise)
-    	        if((abs(speed_correction_line) < ROTATION_THRESHOLD) || (adjustement_dist()>=160)){
+    	        if((abs(speed_correction_line) < ROTATION_THRESHOLD) || (adjustement_dist()>=120)){
     	        	speed_correction_line = 0;
     	        }
 

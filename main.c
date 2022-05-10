@@ -73,7 +73,7 @@ int main(void)
     //starts the serial communication
     serial_start();
     //starts the USB communication
-    //usb_start();
+    usb_start();
     //starts timer 12
     timer12_start();
     //inits the motors
@@ -83,8 +83,8 @@ int main(void)
     //starts moving
     movements_start();
     //starts camera
-    dcmi_start();
-    po8030_start();
+   dcmi_start();
+   po8030_start();
     process_image_start();
 
 
