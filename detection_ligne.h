@@ -21,4 +21,15 @@ int16_t get_line_position(void);
  */
 void process_image_start(void);
 
+/*
+ * detection_ligne : returns 1 if a line is detected by the camera otherwise returns 0
+ */
+bool detection_line(void);
+
+/*
+ * front_leds : set front led when the line is detected
+ */
+void front_leds(void);
+
+
 #endif /* DETECTION_LIGNE_H_ */

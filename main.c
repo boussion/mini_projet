@@ -83,9 +83,9 @@ int main(void)
     //starts moving
     movements_start();
     //starts camera
-   dcmi_start();
-   po8030_start();
-    process_image_start();
+  //  dcmi_start();
+  // 	po8030_start();
+   // process_image_start();
 
 
     //temp tab used to store values in complex_float format
