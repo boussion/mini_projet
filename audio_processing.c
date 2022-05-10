@@ -75,9 +75,8 @@ static	int  son_detection = 0; // Signal that indicates whether noise is detecte
 
 /* sound_analysis: Detects a sound frequency between 1984.375 Hz and 2015.625 Hz and updates the static variable
  Param�tres :
+	float *data			Buffer containing 1024 symmetrical samples, that is 2*512 samples. It corresponds to one of the 4 microphones.
 */
-//float *data			Buffer containing 1024 symmetrical samples, that is 2*512 samples. It corresponds to one of the 4 microphones.
-
 void sound_analysis(float* data){
 	int detection = 0; // use a local variable to update a static variable
 
@@ -123,37 +122,12 @@ void select_freq(void){
 	}
 }
 
-/* sound_detection : allows you to indicate the detection of a sound in another file
- */
+/* 
+	sound_detection : allows you to indicate the detection of a sound in another file
+*/
 bool sound_detection (void){
-
 	return son_detection;
-
 }
-
-
-//function used to determine the average sound [NOT USED]
-float mean_sound(float* mic_nb){
-	float average = 0;
-	for(uint8_t i = FREQ_MVT_MIN; i <= FREQ_MVT_MAX; ++i){
-		average = mic_nb[i] + average;
-	}
-	average = average/(FREQ_MVT_RANGE+1);
-	return average;
-}
-
-
-//Calculates the average direction over a period of 5 recordings
-float mean_dir(float* stored_dir){
-	float sum_dir=0;
-	for(int i=0; i<5; ++i){
-		sum_dir =+ stored_dir[i];
-	}
-	sum_dir=sum_dir/5;
-	return sum_dir;
-}
-
-
 
 void processAudioData(int16_t *data, uint16_t num_samples){
 
@@ -235,6 +209,9 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 			//chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", get_last_direction());
 
 		}
+		else{
+			clear_leds();
+		}
 	}
 }
 
@@ -272,28 +249,14 @@ void process_direction (void){
 	}
 }
 
-//Self explanatory
+//Exports the last direction in memory
 float get_last_direction(void){
 	return last_direction;
 }
 
 //Stores the sound in a structure in order to send them to the location function
 void store_sound(void){
-	/*
-	if(ooo>5){
-		chprintf((BaseSequentialStream*)&SD3,"val0: %f\r\n", micRight_output[FREQ_REF-2]);
-		chprintf((BaseSequentialStream*)&SD3,"val1: %f\r\n", micRight_output[FREQ_REF]);
-		chprintf((BaseSequentialStream*)&SD3,"val2: %f\r\n", micRight_output[FREQ_REF+2]);
-	}
-	*/
-	/*
-	for(int i=0; i<1; ++i){
-		if (micRight_output[FREQ_REF+i]>val_max){
-			val_max=micRight_output[FREQ_REF+i];
-			freq_max = FREQ_REF+i;
-		}
-	}
-	*/
+
 	stored_mic.Mic0real = micRight_cmplx_input[2*freq_max];
 	stored_mic.Mic1real = micLeft_cmplx_input[2*freq_max];
 	stored_mic.Mic2real = micBack_cmplx_input[2*freq_max];

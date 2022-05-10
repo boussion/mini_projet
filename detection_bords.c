@@ -25,6 +25,7 @@
 #define ERROR_EDGE      40
 #define CORRECTION_FACTOR_1 0.8818 //48
 #define CORRECTION_FACTOR_2 37.559
+#define LED_INTENSITY   	100
 
 // Static values to represent the different distances:
 static int16_t distance_to_travel;
@@ -32,9 +33,18 @@ static int16_t distance_to_edges;
 static int16_t distance_from_center;
 
 
+
+//Sets leds
+void set_front_leds(void){
+		set_led(LED1, LED_INTENSITY);
+        set_led(LED3, LED_INTENSITY);
+        set_led(LED7, LED_INTENSITY);
+}
+
+
 /*
  * adjustement_dist: Used to return the adjusted distance given by sensor
- */
+*/
 uint16_t adjustement_dist(void) {
 
 	uint16_t dist_mm =(uint16_t)(VL53L0X_get_dist_mm())*CORRECTION_FACTOR_1 - CORRECTION_FACTOR_2 ; //correction of the error
@@ -48,7 +58,7 @@ uint16_t adjustement_dist(void) {
 
 /*
  * edge_distance: Update the remaining distance to the edges and return it
- */
+*/
 int16_t edge_distance(void){
 
 	int16_t dist = adjustement_dist();
@@ -56,17 +66,16 @@ int16_t edge_distance(void){
 	//if the distance is less than the stopping distance in front of the edges + error range taken into account => distance to travel =0
 	if((dist <= (LIMITE_DISTANCE+ERROR_EDGE))){
 		distance_to_edges = 0;
-
+		set_front_leds(); //sets leds when the e puck is close to the wall
 	}else{
 		distance_to_edges = dist;
-
 	}
 	return distance_to_edges;
 }
 
 /*
  *  centre_distance: Update the distance to the centre and return it
- */
+*/
 int16_t centre_distance(void){
 
 	int16_t dist = adjustement_dist();
@@ -83,7 +92,7 @@ int16_t centre_distance(void){
 
 /*
  * update_distance: Updates the remaining distance based on the sound detection and returns it
- */
+*/
 int16_t update_distance(void){
 
 	//update static values
@@ -101,32 +110,6 @@ int16_t update_distance(void){
 	}
 	return distance_to_travel;
 }
-
-/*
- * play_with_leds: Turn on the LEDs when the edge is reached
- */
-void play_with_leds(void){
-	if(sound_detection()==0){
-		set_rgb_led(LED4,0,0,1);
-	}
-}
-	/*
-	void set_rgb_led(rgb_led_name_t led_number, uint8_t red_val, uint8_t green_val, uint8_t blue_val) {
-		rgb_led[led_number][RED_LED] = red_val;
-		rgb_led[led_number][GREEN_LED] = green_val;
-		rgb_led[led_number][BLUE_LED] = blue_val;
-	}
-
-	*/
-	/*
-	typedef enum {
-		LED2,
-		LED4,
-		LED6,
-		LED8,
-		NUM_RGB_LED,
-	} rgb_led_name_t;
-*/
 
 
 
