@@ -73,7 +73,7 @@ int32_t p_regulator(void){
 void correction(void){
 
 	int32_t distance_rotation=0;
-
+	/*
 	if(sound_detection()==0 && update_distance()>=200){
 	//on peut déterminer une rotation en faisant le tourner le robot jusqu'à get_last distance soit égale à celle qu'on veut même vitessepour les moteurs
 		while( distance_rotation<=right_motor_get_pos()){
@@ -87,6 +87,7 @@ void correction(void){
 			}
 		}
 	}
+	*/
 }
 
 
@@ -139,8 +140,11 @@ static THD_FUNCTION(PRegulator, arg) {
     	        }
 
     	        //corrections + speed => in the motors
-    	       right_motor_set_speed( speed - ROTATION_COEFF_LINE * speed_correction_line+ ROTATION_COEFF_SOUND * speed_correction_sound);
-    	       left_motor_set_speed( speed + ROTATION_COEFF_LINE * speed_correction_line - ROTATION_COEFF_SOUND * speed_correction_sound);
+    	      /*
+    	      right_motor_set_speed( speed - ROTATION_COEFF_LINE * speed_correction_line+ ROTATION_COEFF_SOUND * speed_correction_sound);
+    	      left_motor_set_speed( speed + ROTATION_COEFF_LINE * speed_correction_line - ROTATION_COEFF_SOUND * speed_correction_sound);
+    	      */
+
 
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));

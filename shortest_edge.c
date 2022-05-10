@@ -19,6 +19,8 @@
 
 static bool turned;
 static uint16_t form_dist;
+static uint16_t new_dist;
+static int16_t current_angle;
 
 
 void set_turned(bool new_turn){
@@ -30,14 +32,14 @@ bool get_turned(void){
     return turned;
 }
 
-void turn_to(int angle){
+void turn_to(int angle, int dir){
 
     left_motor_set_pos(0);
     right_motor_set_pos(0);
 
     // The e-puck will pivot on itself
-    left_motor_set_speed(movement_info.turn_direction*MOTOR_SPEED_LIMIT/2);
-    right_motor_set_speed(-movement_info.turn_direction*MOTOR_SPEED_LIMIT/2);
+    left_motor_set_speed(dir*MOTOR_SPEED_LIMIT/2);
+    right_motor_set_speed(-dir*MOTOR_SPEED_LIMIT/2);
 
     // Turns until the desired angle is reached
     while ((abs(left_motor_get_pos()) < abs((angle/FULL_PERIMETER_DEG)*NSTEP_ONE_TURN*CORRECTION_FACTOR))
@@ -54,20 +56,33 @@ void halt(void){
 
 void find_shortest_edge(void){
     form_dist = adjustement_dist();
-    while(form_dist >= adjustement_dist()){
-        // The e-puck will pivot on itself
-        left_motor_set_speed(MOTOR_SPEED_LIMIT/2);
-        right_motor_set_speed(-MOTOR_SPEED_LIMIT/2);
-        form_dist = adjustement_dist();
-    
-    while (form_dist =< adjustment_dist()){}
-    {
-        left_motor_set_speed(-MOTOR_SPEED_LIMIT/2);
-        right_motor_set_speed(MOTOR_SPEED_LIMIT/2);
-        form_dist = adjustement_dist();
-    }    
-    
-    halt();
+    current_angle = 0;
+    while(current_angle<100){
+    	turn_to(current_angle+5, 1);
+    	new_dist=adjustement_dist();
+    	if(form_dist>new_dist){
+    		halt();
+    		return;
+    	}
+    	else{
+    		form_dist = new_dist;
+    		current_angle = current_angle +5;
+    	}
+    }
+    turn_to(100, -1);
+    current_angle=0;
+    while(current_angle<100){
+    	turn_to(current_angle+5, -1);
+    	new_dist=adjustement_dist();
+    	if(form_dist>new_dist){
+    		return;
+    	}
+    	else{
+    		form_dist = new_dist;
+    		current_angle = current_angle +5;
+    	}
+    }
+    return;
 }
 
 
