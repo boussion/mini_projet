@@ -18,6 +18,8 @@
 #include "sensors/VL53L0X/VL53L0X.h"
 
 static bool turned;
+static uint16_t form_dist;
+
 
 void set_turned(bool new_turn){
     turned = new_turn;
@@ -50,23 +52,20 @@ void halt(void){
     right_motor_set_speed(0);
 }
 
-adjustement_dist
-
 void find_shortest_edge(void){
-    uint16_t form_dist;
     form_dist = adjustement_dist();
-    while(form_dist>adjustement_dist()){
+    while(form_dist >= adjustement_dist()){
         // The e-puck will pivot on itself
         left_motor_set_speed(MOTOR_SPEED_LIMIT/2);
         right_motor_set_speed(-MOTOR_SPEED_LIMIT/2);
         form_dist = adjustement_dist();
-    while (form_dist<adjustment_dist()){}
+    
+    while (form_dist =< adjustment_dist()){}
     {
         left_motor_set_speed(-MOTOR_SPEED_LIMIT/2);
         right_motor_set_speed(MOTOR_SPEED_LIMIT/2);
         form_dist = adjustement_dist();
     }    
-    
     
     halt();
 }
