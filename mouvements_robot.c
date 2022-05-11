@@ -19,7 +19,7 @@
 
 
 
-#define ROTATION_THRESHOLD 50 // Threshold for the speed rotation due to the line detectioùn
+#define ROTATION_THRESHOLD 50 // Threshold for the speed rotation due to the line detectioï¿½n
 #define ERROR_THRESHOLD_SOUND 5 //Error in the angle of rotation
 #define ROTATION_COEFF_LINE 0.5 //Adjustement of the trajectory correction towards the line
 #define ROTATION_COEFF_SOUND 13 //Adjustment of the trajectory correction towards the source of the sound
@@ -32,7 +32,6 @@
 #define SPEED	100
 #define ERROR_CORRECTION 10
 
-static uint16_t center_position=0;// equal to 1 when the center position has been actuated
 
 
 /*
@@ -111,10 +110,6 @@ uint8_t k=0;
 
 }
 
-/*
- * center: set the static variable center_position to 0 if one sound is detected
- */
-void center(void){
 
 
 	if(sound_detection()==1){
@@ -135,6 +130,7 @@ static THD_FUNCTION(PRegulator, arg) {
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
+
     	    systime_t time;
     	    int16_t speed=0;
     	    int16_t speed_correction_line = 0;
@@ -142,15 +138,12 @@ static THD_FUNCTION(PRegulator, arg) {
 
     	    while(1){
 
-    	    	//update of the static variable center_position
-    	    	center();
-
     	    	//We recover the time of the system
     	        time = chVTGetSystemTime();
 
-    	       // chprintf((BaseSequentialStream*)&SD3,"Distance  = %ld", left_motor_get_pos());
+    	        chprintf((BaseSequentialStream*)&SD3,"Distance  = %u", adjustement_dist());
 
-    	        //set_front_led(1);
+
     	        //computes the speed to give to the motors using the pi-regulator
     	        speed = p_regulator();
 
@@ -189,7 +182,7 @@ static THD_FUNCTION(PRegulator, arg) {
     	    left_motor_set_speed( speed + ROTATION_COEFF_LINE * speed_correction_line - ROTATION_COEFF_SOUND * speed_correction_sound);
 
         //100Hz
-       chThdSleepUntilWindowed(time, time + MS2ST(10));
+        chThdSleepUntilWindowed(time, time + MS2ST(10));
     }
 }
 

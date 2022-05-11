@@ -9,7 +9,6 @@
 #include "hal.h"
 #include <chprintf.h>
 #include <usbcfg.h>
-#include <leds.h>
 
 #include <main.h>
 #include <camera/po8030.h>
@@ -30,7 +29,7 @@ static int16_t line_position=0;
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 
 /*
- * extract_line_position : update the static variable line_position with the position of line 1
+ * extract_line_position : update the static variable line1_position with the position of line 1
  */
 void extract_line_position(uint8_t *buffer){
 
@@ -116,30 +115,6 @@ int16_t get_line_position(void){
 }
 
 /*
- * detection_ligne :returns 1 if a line is detected by the camera otherwise returns 0
- */
-bool detection_line(void){
-	if(line_position==0){
-
-		return 0;
-	}else{
-		return 1;
-	}
-}
-
-/*
- * front_leds : set front led when the line is detected
- */
-void front_leds(void){
-
-	if(detection_line()==1){
-		set_front_led(1);
-	}else{
-		set_front_led(0);
-	}
-}
-
-/*
  * CaptureImage : allows you to capture an image
  */
 static THD_WORKING_AREA(waCaptureImage, 256);
@@ -149,7 +124,7 @@ static THD_FUNCTION(CaptureImage, arg) {
     (void)arg;
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 10 + 11 (minimum 2 lines because reasons)
-	po8030_advanced_config(FORMAT_RGB565, 0, 200, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	po8030_advanced_config(FORMAT_RGB565, 0, 10, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
@@ -195,7 +170,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//regular call of the function to update the static position variable
 		extract_line_position(image);
 
-
+		/*
 		// for test with the python scrypt
 		if(send_to_computer){
 			//sends to the computer the image
@@ -203,7 +178,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 		//invert the bool
 		send_to_computer = !send_to_computer;
-
+		*/
     }
 }
 
