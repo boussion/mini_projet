@@ -39,14 +39,6 @@ static int iii;
 /* defines used in find_delta_t.c					*/
 #define TAU_RANGE 14		// Needs to be a pair number
 
-/* defines used in turn_to_direction.c */
-#define TURN_SPEED 1000
-#define STEPS_FOR_2PI 1300.
-#define MIC_SAMP_NB 100
-#define NB_MIC 3
-#define FREQ_REF 2000
-#define FREQ_REF_INDEX 128
-
 static int max_freq;
 
 

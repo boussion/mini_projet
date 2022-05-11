@@ -41,9 +41,7 @@ static int freq_max;
 //used to count different iterations
 static int ooo;
 
-
 #define MIN_VALUE_THRESHOLD	10000 
-
 
 // Frequencies studied:
 #define FREQ_REF	30   // 2 000 Hz

@@ -170,7 +170,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//regular call of the function to update the static position variable
 		extract_line_position(image);
 
-
+		/*
 		// for test with the python scrypt
 		if(send_to_computer){
 			//sends to the computer the image
@@ -178,7 +178,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 		//invert the bool
 		send_to_computer = !send_to_computer;
-
+		*/
     }
 }
 
