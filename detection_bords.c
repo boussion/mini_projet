@@ -19,11 +19,11 @@
 #include <arm_math.h>
 
 #define LIMITE_DETECTION 65536 // maximum uint16_t => 65536
-#define RAYON_CERCLE 235 // we consider a circle of radius 18 centimetres
+#define RAYON_CERCLE 200 // we consider a circle of radius 235 mm => 35 mm between the front and the center of the e-puck
 #define LIMITE_DISTANCE 10 //
 #define ERREUR_POSSIBLE 20 // error threshold
-#define ERROR_EDGE      40
-#define CORRECTION_FACTOR_1 0.8818 //48
+#define ERROR_EDGE      50
+#define CORRECTION_FACTOR_1 0.8818
 #define CORRECTION_FACTOR_2 37.559
 #define LED_INTENSITY   	100
 
@@ -47,7 +47,7 @@ void set_front_leds(void){
 */
 uint16_t adjustement_dist(void) {
 
-	uint16_t dist_mm =(uint16_t)(VL53L0X_get_dist_mm())*CORRECTION_FACTOR_1 - CORRECTION_FACTOR_2 ; //correction of the error
+	uint16_t dist_mm =(uint16_t)(VL53L0X_get_dist_mm()*CORRECTION_FACTOR_1 - CORRECTION_FACTOR_2) ; //correction of the error
 
 	// avoid distance overflow due to sensor instability
 	if( (dist_mm>=(LIMITE_DETECTION-6))){

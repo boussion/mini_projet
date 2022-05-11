@@ -179,7 +179,7 @@ static THD_FUNCTION(PRegulator, arg) {
 
     	       //The correction is put in place: when the robot is at 150 mm minimum from the boards +position in the center not already updated
     	        if(sound_detection()==0 && (adjustement_dist()>=150) && center_position==0){
-    	        	//correction();
+    	        	correction();
 
     	        }
 
