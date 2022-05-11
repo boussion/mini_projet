@@ -87,7 +87,6 @@ int main(void)
     dcmi_start();
     po8030_start();
     process_image_start();
-    find_shortest_edge();
 
 
     //temp tab used to store values in complex_float format
