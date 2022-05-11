@@ -15,10 +15,11 @@
 #include <locate_sound.h>
 
 /* defines used in main.c                          */
-#define MEAN_MAX 50		// Length of the mean_table
-#define MEAN_MAX_INV 0.01	// Inversed value of MEAN_MAX
-#define PERCENT 0.1			// Defines range to distinguish between noise an signal
-#define NB_SAMPLES 100
+#define MEAN_MAX 		50		// Length of the mean_table
+#define MEAN_MAX_INV 	0.01	// Inversed value of MEAN_MAX
+#define PERCENT 	0.1			// Defines range to distinguish between noise an signal
+#define NB_SAMPLES	100
+#define TABLE_TO_FREQ	15.625	//Value to switch from table length to actual frequency
 
 //counters
 static int ooo;
@@ -118,7 +119,7 @@ float calculate_direction(void)
 
 	d_esp1 = delta_t1*SPEED_SOUND; //spatial_distance = time_difference * speed_of_sound
 
-	direction = acosf(d_esp1);
+	direction = acosf(d_esp1/MAXIMUM_DELTA_T1);
 	// We want an angle strictly between [0,2*PI]
 	if (direction < 0){
 		direction = 2*PI + direction;
@@ -138,7 +139,7 @@ float find_delta_t_phase(int mic1_nb, int mic2_nb){
 	float arg1, arg2;
 	arg1=get_arg(bufferOutput[mic1_nb][0],bufferOutput[mic1_nb][1]);
 	arg2=get_arg(bufferOutput[mic2_nb][0],bufferOutput[mic2_nb][1]);
-	delta_t = (1024*0.001*(arg1-arg2))/(2*PI*max_freq);
+	delta_t = ((arg1-arg2))/(2*PI*max_freq*TABLE_TO_FREQ);
 	return delta_t;
 }
 
