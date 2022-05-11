@@ -20,6 +20,7 @@
 #include <detection_bords.h>
 #include <mouvements_robot.h>
 #include <detection_ligne.h>
+#include <shortest_edge.h>
 
 //uncomment to send the FFTs results from the real microphones
 #define SEND_FROM_MIC
@@ -83,9 +84,10 @@ int main(void)
     //starts moving
     movements_start();
     //starts camera
-  //  dcmi_start();
-  // 	po8030_start();
-   // process_image_start();
+    dcmi_start();
+    po8030_start();
+    process_image_start();
+    find_shortest_edge();
 
 
     //temp tab used to store values in complex_float format
@@ -97,7 +99,7 @@ int main(void)
 
 #ifdef SEND_FROM_MIC
     //starts sound detection
-    mic_start(&processAudioData);
+    //mic_start(&processAudioData);
     //frequency_detection_start();
 #endif  /* SEND_FROM_MIC */
 

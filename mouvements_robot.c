@@ -105,6 +105,7 @@ void correction(void){
 	}else{
 		center_position=0;
 	}
+	*/
 }
 
 /*
