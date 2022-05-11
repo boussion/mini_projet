@@ -17,7 +17,7 @@ CSRC += ./main.c \
 		./mouvements_robot.c\
 		./detection_ligne.c\
 		./locate_sound.c\
-		./shortest_edge.c\
+		
 
 #Header folders to include
 INCDIR += 
