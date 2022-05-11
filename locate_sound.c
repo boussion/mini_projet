@@ -20,6 +20,7 @@
 #define PERCENT 	0.1			// Defines range to distinguish between noise an signal
 #define NB_SAMPLES	100
 #define TABLE_TO_FREQ	15.625	//Value to switch from table length to actual frequency
+#define NB_MIC 3
 
 //counters
 static int ooo;

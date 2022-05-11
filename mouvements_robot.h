@@ -21,6 +21,8 @@ void movements_start(void);
 
 void correction(void);
 
+void center(void);
+
 
 
 #endif /* MOUVEMENTS_ROBOT_H_ */

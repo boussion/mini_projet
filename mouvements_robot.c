@@ -110,6 +110,10 @@ uint8_t k=0;
 
 }
 
+/*
+ * center: set the static variable center_position to 0 if one sound is detected
+ */
+void center(void){
 
 
 	if(sound_detection()==1){
@@ -130,7 +134,6 @@ static THD_FUNCTION(PRegulator, arg) {
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
-
     	    systime_t time;
     	    int16_t speed=0;
     	    int16_t speed_correction_line = 0;
@@ -138,12 +141,15 @@ static THD_FUNCTION(PRegulator, arg) {
 
     	    while(1){
 
+    	    	//update of the static variable center_position
+    	    	center();
+
     	    	//We recover the time of the system
     	        time = chVTGetSystemTime();
 
-    	        chprintf((BaseSequentialStream*)&SD3,"Distance  = %u", adjustement_dist());
+    	       // chprintf((BaseSequentialStream*)&SD3,"Distance  = %ld", left_motor_get_pos());
 
-
+    	        //set_front_led(1);
     	        //computes the speed to give to the motors using the pi-regulator
     	        speed = p_regulator();
 
@@ -172,7 +178,7 @@ static THD_FUNCTION(PRegulator, arg) {
 
     	       //The correction is put in place: when the robot is at 150 mm minimum from the boards +position in the center not already updated
     	        if(sound_detection()==0 && (adjustement_dist()>=150) && center_position==0){
-    	        	correction();
+    	        	//correction();
 
     	        }
 
@@ -182,7 +188,7 @@ static THD_FUNCTION(PRegulator, arg) {
     	    left_motor_set_speed( speed + ROTATION_COEFF_LINE * speed_correction_line - ROTATION_COEFF_SOUND * speed_correction_sound);
 
         //100Hz
-        chThdSleepUntilWindowed(time, time + MS2ST(10));
+       chThdSleepUntilWindowed(time, time + MS2ST(10));
     }
 }
 
