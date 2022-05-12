@@ -44,14 +44,14 @@ static int ooo;
 #define MIN_VALUE_THRESHOLD	10000 
 
 // Frequencies studied:
-#define FREQ_REF	30   // 2 000 Hz
-#define FREQ_MVT_MIN	(FREQ_REF-2) // 1 984,375 Hz
-#define FREQ_MVT_MAX 	(FREQ_REF+2) // 2 015.625 Hz
+#define FREQ_REF	30
+#define FREQ_MVT_MIN	(FREQ_REF-2)
+#define FREQ_MVT_MAX 	(FREQ_REF+2)
 #define FREQ_MVT_RANGE (FREQ_MVT_MAX-FREQ_MVT_MIN)	//MAX_FREQ-MIN_FREQ
 
 // Bandpass filter:
-#define MIN_FREQ	FREQ_REF-12	// no sound detected before 1 796,875 Hz
-#define MAX_FREQ	FREQ_REF+12 // no sound detected after 2 187,5 Hz
+#define MIN_FREQ	FREQ_REF-12
+#define MAX_FREQ	FREQ_REF+12
 
 #define NB_SAMPLES 100 //Nb de samples enregistr�s pour localiser le son
 
