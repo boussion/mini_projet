@@ -32,6 +32,8 @@ static int16_t distance_to_travel;
 static int16_t distance_to_edges;
 static int16_t distance_from_center;
 
+static uint8_t centrage=0;
+
 
 
 //Sets leds
@@ -67,6 +69,8 @@ int16_t edge_distance(void){
 	if((dist <= (LIMITE_DISTANCE+ERROR_EDGE))){
 		distance_to_edges = 0;
 		set_front_leds(); //sets leds when the e puck is close to the wall
+		centrage=1;
+
 	}else{
 		distance_to_edges = dist;
 	}
@@ -112,6 +116,14 @@ int16_t update_distance(void){
 }
 
 
+bool get_centrage(void){
+
+	return centrage;
+}
+
+void reset_centrage(void){
+	centrage = 0;
+}
 
 
 
