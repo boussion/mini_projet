@@ -106,6 +106,7 @@ void correction(void){
 		center_position=0;
 	}else{
 		center_position=1;
+		reset_centrage();
 	}
 
 }
@@ -116,12 +117,11 @@ void correction(void){
 void center(void){
 
 
-	if(sound_detection()==1){
+	if(get_centrage()==1){
 
 		center_position=0;
 	}
 }
-
 
 
 /*
@@ -169,7 +169,7 @@ static THD_FUNCTION(PRegulator, arg) {
     	       speed_correction_line = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
 
     	        //line speed correction : correction miuts be in a certain range + no correction in center (image is not enough precise)
-    	        if((abs(speed_correction_line) < ROTATION_THRESHOLD) || (adjustement_dist()>=160) || (update_distance()<=0)){
+    	        if((abs(speed_correction_line) < ROTATION_THRESHOLD) || (adjustement_dist()>=160) || (update_distance()<=0) || sound_detection()==0){
 
     	        	//(adjustement_dist()<=0)){
     	        	speed_correction_line = 0;

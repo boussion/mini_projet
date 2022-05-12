@@ -31,6 +31,13 @@ int16_t centre_distance(void);
 */
 int16_t update_distance(void);
 
+/*
+ * Test
+ */
+bool get_centrage(void);
+
+void reset_centrage(void);
+
 
 
 #endif /* DETECTION_BORDS_H_ */
