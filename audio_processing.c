@@ -7,7 +7,6 @@
 #include <motors.h>
 #include <audio/microphone.h>
 #include <audio_processing.h>
-#include <communications.h>
 #include <fft.h>
 #include <arm_math.h>
 #include <leds.h>
@@ -29,7 +28,6 @@ static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
 //Different methods used to store the values of the angles
-static float stored_dir[5];
 static float sum_dir;
 
 //Stores the value of the last average direction calculated
@@ -39,21 +37,20 @@ static float last_direction;
 static int freq_max;
 
 //used to count different iterations
-static int ooo;
+static int counter;
 
 #define MIN_VALUE_THRESHOLD	10000 
 
 // Frequencies studied:
-#define FREQ_REF	30
-#define FREQ_MVT_MIN	(FREQ_REF-2)
-#define FREQ_MVT_MAX 	(FREQ_REF+2)
+#define FREQ_CORRECTION 	3 //Frequency corrector (About 50 Hz)
+#define FREQ_REF	30 + FREQ_CORRECTION  // 468.75 Hz
+#define FREQ_MVT_MIN	(FREQ_REF-2) // FREQ_REF - 30 Hz
+#define FREQ_MVT_MAX 	(FREQ_REF+2) // FREQ_REF + 30 Hz
 #define FREQ_MVT_RANGE (FREQ_MVT_MAX-FREQ_MVT_MIN)	//MAX_FREQ-MIN_FREQ
 
 // Bandpass filter:
-#define MIN_FREQ	FREQ_REF-12
-#define MAX_FREQ	FREQ_REF+12
-
-#define NB_SAMPLES 100 //Nb de samples enregistr�s pour localiser le son
+#define MIN_FREQ	FREQ_REF-12 // FREQ_REF - 187.5 Hz
+#define MAX_FREQ	FREQ_REF+12 // FREQ_REF + 187.5 Hz
 
 #define MIC_FRONT_RIGHT 1
 #define MIC_FRONT_LEFT 2
@@ -71,10 +68,7 @@ static struct Mic_Record stored_mic;
 static	int  son_detection = 0; // Signal that indicates whether noise is detected
 //static uint16_t micro_a_proximite=0;
 
-/* sound_analysis: Detects a sound frequency between 1984.375 Hz and 2015.625 Hz and updates the static variable
- Param�tres :
-	float *data			Buffer containing 1024 symmetrical samples, that is 2*512 samples. It corresponds to one of the 4 microphones.
-*/
+
 void sound_analysis(float* data){
 	int detection = 0; // use a local variable to update a static variable
 
@@ -108,21 +102,17 @@ void sound_analysis(float* data){
 }
 
 
-//Selects the frequency with the highest amplitude between FREQ_REF-2 and FREQ_REF+2
 void select_freq(void){
 	freq_max=FREQ_REF-2;
-	float  val_max=micFront_output[FREQ_REF-2];
+	float  val_max=micFront_output[FREQ_REF-2]; //Stores the amplitude of the lowest checked value as a reference
 	for(int i=0;i<4;++i){
-		if(val_max<micFront_output[FREQ_REF-1+i]){
-			val_max = micFront_output[FREQ_REF-1+i];
+		if(val_max<micFront_output[FREQ_REF-1+i]){ 		//Compares to all other analyzed values to store if they're
+			val_max = micFront_output[FREQ_REF-1+i];	//Higher
 			freq_max = FREQ_REF-1+i;
 		}
 	}
 }
 
-/* 
-	sound_detection : allows you to indicate the detection of a sound in another file
-*/
 bool sound_detection (void){
 	return son_detection;
 }
@@ -138,7 +128,6 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 	 */
 
 	static uint16_t nb_samples = 0;
-	static uint8_t mustSend = 0;
 
 	//loop to fill the buffers
 	for(uint16_t i = 0 ; i < num_samples ; i+=4){
@@ -191,21 +180,11 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		//sends only one FFT result over 10 for 1 mic to not flood the computer
 		//sends to UART3
 
-		if(mustSend > 8){
-			//signals to send the result to the computer
-			//chBSemSignal(&sendToComputer_sem);
-			mustSend = 0;
-		}
 		nb_samples = 0;
-		mustSend++;
 		store_sound();
 		sound_analysis(micFront_output);
 		if(sound_detection()){
-			//turn_puck(60);
-			float direction;
 			process_direction(); //process the direction of the detected sound
-			//chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", get_last_direction());
-
 		}
 		else{
 			clear_leds();
@@ -213,7 +192,6 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 	}
 }
 
-//function used to determine the location of the sound, as well as the necessary adjustments to get a readable value
 void process_direction (void){	
 	float direction;
 	select_freq();
@@ -224,35 +202,27 @@ void process_direction (void){
 	direction2 = rad_to_deg(direction); //converts the radians to degrees
 
 	if(direction2 < 50){
-		//chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO LOOOOOWWW %d\r\n");
 		direction2=50;
 	}
 	if(direction2>140){
-		//chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO HIGGGHHHH %d\r\n");
 		direction2 = 140;
 	}
 
 	direction2 = adjust_deg(direction2);
 	sum_dir = sum_dir + direction2; //Sums the values before dividing them
-	//chprintf((BaseSequentialStream*)&SD3,"direction 2: %f\r\n", direction2);
-	//chprintf((BaseSequentialStream*)&SD3,"sum_dir: %f\r\n", sum_dir);
 
-	++ooo; //counter to make sure we get to 5 values before averaging the directions
-	if(ooo > 4){
-		//chprintf((BaseSequentialStream*)&SD3,"ooo: %d\r\n", ooo);
-		//chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", sum_dir/5);
+	++counter; //counter to make sure we get to 5 values before averaging the directions
+	if(counter > 4){
 		last_direction = sum_dir/5;
-		ooo = 0;
+		counter = 0;
 		sum_dir = 0;
 	}
 }
 
-//Exports the last direction in memory
 float get_last_direction(void){
 	return last_direction;
 }
 
-//Stores the sound in a structure in order to send them to the location function
 void store_sound(void){
 
 	stored_mic.Mic0real = micRight_cmplx_input[2*freq_max];
@@ -266,7 +236,6 @@ void store_sound(void){
 void wait_send_to_computer(void){
 	chBSemWait(&sendToComputer_sem);
 }
-
 
 float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	if(name == LEFT_CMPLX_INPUT){

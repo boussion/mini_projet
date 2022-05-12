@@ -15,7 +15,6 @@
 #include <leds.h>
 
 #include <audio_processing.h>
-#include <communications.h>
 #include <arm_math.h>
 
 #define LIMITE_DETECTION 65536 // maximum uint16_t => 65536

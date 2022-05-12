@@ -15,7 +15,6 @@
 #include "sensors/VL53L0X/VL53L0X.h"
 #include <audio_processing.h>
 #include <fft.h>
-#include <communications.h>
 #include <arm_math.h>
 #include <detection_bords.h>
 #include <mouvements_robot.h>
