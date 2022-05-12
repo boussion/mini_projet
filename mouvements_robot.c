@@ -66,7 +66,7 @@ int32_t p_regulator(void){
  * correction: alignment of the robot with the smallest distance
  */
 void correction(void){
-
+uint8_t k=0;
 	//not 0 because otherwise adjustment_dist will always be greater than distance_min
 	uint16_t distance_min=250;
 	//The robot is rotated continuously until it makes DIST_ROTATION corresponding to one revolution.
@@ -107,6 +107,7 @@ void correction(void){
 	}else{
 		center_position=1;
 	}
+	chprintf((BaseSequentialStream*)&SD3,"centre  = %u", center_position);
 
 }
 
@@ -178,7 +179,7 @@ static THD_FUNCTION(PRegulator, arg) {
 
     	       //The correction is put in place: when the robot is at 150 mm minimum from the boards +position in the center not already updated
     	        if(sound_detection()==0 && (adjustement_dist()>=150) && center_position==0){
-    	        	correction();
+    	        	//correction();
 
     	        }
 
