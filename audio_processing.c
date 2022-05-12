@@ -51,8 +51,8 @@ static int ooo;
 #define FREQ_MVT_RANGE (FREQ_MVT_MAX-FREQ_MVT_MIN)	//MAX_FREQ-MIN_FREQ
 
 // Bandpass filter:
-#define MIN_FREQ	FREQ_REF-12	// no sound detected before 1 796,875 Hz
-#define MAX_FREQ	FREQ_REF+12 // no sound detected after 2 187,5 Hz
+#define MIN_FREQ	FREQ_REF-12	// no sound detected before FREQ_REF - 187.5 Hz
+#define MAX_FREQ	FREQ_REF+12 // no sound detected after FREQ_REF + 187.5 Hz
 
 #define NB_SAMPLES 100 //Nb de samples enregistr�s pour localiser le son
 
