@@ -18,27 +18,21 @@
 #include "sensors/VL53L0X/VL53L0X.h"
 
 
-
 #define ROTATION_THRESHOLD 50 // Threshold for the speed rotation due to the line detectioùn
-#define ERROR_THRESHOLD_SOUND 5 //Error in the angle of rotation
-#define ROTATION_COEFF_LINE 0.5 //Adjustement of the trajectory correction towards the line
-#define ROTATION_COEFF_SOUND 14 //Adjustment of the trajectory correction towards the source of the sound
+#define ERROR_THRESHOLD_SOUND 5 // Error in the angle of rotation
+#define ROTATION_COEFF_LINE 0.5 // Adjustement of the trajectory correction towards the line
+#define ROTATION_COEFF_SOUND 14 // Adjustment of the trajectory correction towards the source of the sound
 #define IMAGE_BUFFER_SIZE 640
 #define MOTOR_SPEED_LIMIT 1100 // [step/s]
-#define KP					2 // go strait ahead
-#define KP_RETURN 			7 // back off
-#define MAX_ERROR		(MOTOR_SPEED_LIMIT/KP) //Speed limitation given by the orbot
-#define DIST_ROTATION	1300 // rotation speed
+#define KP					2 // Go strait ahead
+#define KP_RETURN 			7 // Back off
+#define DIST_ROTATION	1300 // Rotation speed
 #define SPEED	100
-#define ERROR_CORRECTION 10
+#define ERROR_CORRECTION 5
 
-static uint16_t center_position=0;// equal to 1 when the center position has been actuated
+static uint16_t center_position=0;// Equal to 1 when the center position has been actuated
 
 
-/*
- *  p_regulator: allows to determine a forward or backward speed of the robot
- * 	modified to only work with update_distance
- */
 int32_t p_regulator(void){
 
 	int16_t error = 0;
@@ -62,21 +56,22 @@ int32_t p_regulator(void){
 }
 
 
-/*
- * correction: alignment of the robot with the smallest distance
- */
 void correction(void){
 
 	//not 0 because otherwise adjustment_dist will always be greater than distance_min
 	uint16_t distance_min=250;
-	//The robot is rotated continuously until it makes DIST_ROTATION corresponding to one revolution.
+	uint16_t actual_dist;
 
+	//The robot is rotated continuously until it makes DIST_ROTATION corresponding to one revolution.
+	//Reset of the motors position
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
-			do{
+
+		do{
 			// update of the minimum distance if the one captured is smaller
-			if(adjustement_dist()<=distance_min){
-				distance_min=adjustement_dist();
+			actual_dist=adjustement_dist();
+			if(actual_dist<=distance_min){
+				distance_min=actual_dist;
 			}
 
 			// The e-puck will pivot on itself
@@ -84,49 +79,42 @@ void correction(void){
 			right_motor_set_speed(SPEED);
 
 			// Turns until the desired angle is reached
-			}while(abs(left_motor_get_pos())<=DIST_ROTATION);
+		}while(abs(left_motor_get_pos())<=DIST_ROTATION);
 
-			//chprintf((BaseSequentialStream*)&SD3,"Distance  = %u", distance_min);
-
-
-	//The robot is rotated continously until it find the min distance fin previously
-
+	//The robot is rotated continously until it find the min distance fin previously or if not found until the robot has made a turn
+	//Reset of the motors position
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
 
 	do{
 		left_motor_set_speed(SPEED);
 		right_motor_set_speed(-SPEED);
+		actual_dist=adjustement_dist();
 
-	}while((adjustement_dist()>distance_min+ERROR_CORRECTION || adjustement_dist()<=distance_min-ERROR_CORRECTION) ||abs(left_motor_get_pos())<DIST_ROTATION);
+	}while((actual_dist>distance_min+ERROR_CORRECTION  && abs(left_motor_get_pos())<=DIST_ROTATION));
 
+	//If the center_correction is made put the static variable center_poistion to 1
+	//if((actual_dist>distance_min+ERROR_CORRECTION ||abs(left_motor_get_pos())<DIST_ROTATION)){
 
-	if((adjustement_dist()>=distance_min+ERROR_CORRECTION || adjustement_dist()<=distance_min-ERROR_CORRECTION)||abs(left_motor_get_pos())<DIST_ROTATION){
+	left_motor_set_speed(0);
+	right_motor_set_speed(0);
 
-		center_position=0;
-	}else{
+	//	center_position=0;
+	//}else{
 		center_position=1;
+		//Reset the value of the static variable centrage
 		reset_centrage();
-	}
-
+	//}
 }
 
-/*
- * center: set the static variable center_position to 0 if one sound is detected
- */
+
 void center(void){
-
-
+	//if the robot was at proximity from the edge => indicates by the static variable center_position that the centering must be done
 	if(get_centrage()==1){
-
 		center_position=0;
 	}
 }
 
-
-/*
- * PRegulator : allows the update of the speed of the motors with the pi regulator
- */
 
 static THD_WORKING_AREA(waPRegulator, 256);
 static THD_FUNCTION(PRegulator, arg) {
@@ -147,9 +135,6 @@ static THD_FUNCTION(PRegulator, arg) {
     	    	//We recover the time of the system
     	        time = chVTGetSystemTime();
 
-    	       // chprintf((BaseSequentialStream*)&SD3,"Distance  = %ld", left_motor_get_pos());
-
-    	        //set_front_led(1);
     	        //computes the speed to give to the motors using the pi-regulator
     	        speed = p_regulator();
 
@@ -168,33 +153,26 @@ static THD_FUNCTION(PRegulator, arg) {
     	        //speed correction according to the position of the line
     	       speed_correction_line = (get_line_position() - (IMAGE_BUFFER_SIZE/2));
 
-    	        //line speed correction : correction miuts be in a certain range + no correction in center (image is not enough precise)
+    	        //line speed correction : correction must be in a certain range + no correction in center (image is not enough precise)
     	        if((abs(speed_correction_line) < ROTATION_THRESHOLD) || (adjustement_dist()>=160) || (update_distance()<=0) || sound_detection()==0){
-
-    	        	//(adjustement_dist()<=0)){
     	        	speed_correction_line = 0;
     	        }
 
-
-    	       //The correction is put in place: when the robot is at 150 mm minimum from the boards +position in the center not already updated
+    	        //The correction is put in place: when the robot is at 150 mm minimum from the boards +position in the center not already updated
     	        if(sound_detection()==0 && (adjustement_dist()>=150) && center_position==0){
     	        	correction();
-
     	        }
 
-
     	        //corrections + speed => in the motors
-    	    right_motor_set_speed( speed - ROTATION_COEFF_LINE * speed_correction_line+ ROTATION_COEFF_SOUND * speed_correction_sound);
-    	    left_motor_set_speed( speed + ROTATION_COEFF_LINE * speed_correction_line - ROTATION_COEFF_SOUND * speed_correction_sound);
+				right_motor_set_speed( speed - ROTATION_COEFF_LINE * speed_correction_line+ ROTATION_COEFF_SOUND * speed_correction_sound);
+				left_motor_set_speed( speed + ROTATION_COEFF_LINE * speed_correction_line - ROTATION_COEFF_SOUND * speed_correction_sound);
 
-        //100Hz
-       chThdSleepUntilWindowed(time, time + MS2ST(10));
-    }
+				//100Hz
+			   chThdSleepUntilWindowed(time, time + MS2ST(10));
+    	    }
 }
 
-/*
- * movements_start : allows the activation of the PRegulator thread
- */
+
 void movements_start(void){
 	chThdCreateStatic(waPRegulator, sizeof(waPRegulator), NORMALPRIO, PRegulator, NULL);
 }

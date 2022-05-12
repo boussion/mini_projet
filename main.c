@@ -87,7 +87,6 @@ int main(void)
     po8030_start();
     process_image_start();
 
-
     //temp tab used to store values in complex_float format
     //needed bx doFFT_c
     static complex_float temp_tab[FFT_SIZE];
@@ -105,42 +104,6 @@ int main(void)
     while (1) {
     	chThdSleepMilliseconds(500);
 
-
-
-    	//chprintf((BaseSequentialStream *) &SD3, "time = %d\n",chVTGetSystemTime());
-
-/* #ifdef SEND_FROM_MIC
-        //waits until a result must be sent to the computer
-        wait_send_to_computer();
-#ifdef DOUBLE_BUFFERING
-        //we copy the buffer to avoid conflicts
-        arm_copy_f32(get_audio_buffer_ptr(LEFT_OUTPUT), send_tab, FFT_SIZE);
-        SendFloatToComputer((BaseSequentialStream *) &SD3, send_tab, FFT_SIZE);
-#else
-        //SendFloatToComputer((BaseSequentialStream *) &SD3, get_audio_buffer_ptr(LEFT_OUTPUT), FFT_SIZE);
-#endif */ /* DOUBLE_BUFFERING */
-/*#else
-        //time measurement variables
-        volatile uint16_t time_fft = 0;
-        volatile uint16_t time_mag  = 0;
-
-        float* bufferCmplxInput = get_audio_buffer_ptr(LEFT_CMPLX_INPUT);
-        float* bufferOutput = get_audio_buffer_ptr(LEFT_OUTPUT);
-
-            chSysLock();
-            //reset the timer counter
-            GPTD12.tim->CNT = 0;
-
-            arm_cmplx_mag_f32(bufferCmplxInput, bufferOutput, FFT_SIZE);
-
-            time_mag = GPTD12.tim->CNT;
-            chSysUnlock();
-
-            SendFloatToComputer((BaseSequentialStream *) &SD3, bufferOutput, FFT_SIZE);
-            //chprintf((BaseSequentialStream *) &SDU1, "time fft = %d us, time magnitude = %d us\n",time_fft, time_mag);
-
-        }
-#endif SEND_FROM_MIC */
     }
 }
 

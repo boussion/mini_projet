@@ -17,9 +17,9 @@
 
 #define IMAGE_BUFFER_SIZE		640
 #define CENTER_PIXEL			320
-#define WIDTH_SLOPE				5 // initialement 5
+#define WIDTH_SLOPE				5
 #define MIN_LINE_WIDTH			30
-#define ERROR_THRESHOLD			0.1f	//[cm] because of the noise of the camera
+#define ERROR_THRESHOLD			0.1f// [cm] because of the noise of the camera
 #define NB_LINES   				2
 
 static int16_t line_position=0;
@@ -28,9 +28,7 @@ static int16_t line_position=0;
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 
-/*
- * extract_line_position : update the static variable line1_position with the position of line 1
- */
+
 void extract_line_position(uint8_t *buffer){
 
 	uint16_t i = 0, begin = 0, end = 0;
@@ -38,7 +36,6 @@ void extract_line_position(uint8_t *buffer){
 	uint16_t mean = 0;
 
 	int32_t position =0;
-
 
 	//performs an average
 		for(uint16_t i = 0 ; i < IMAGE_BUFFER_SIZE ; i++){
@@ -106,17 +103,14 @@ void extract_line_position(uint8_t *buffer){
 		line_position = position;
 
 		}
-/*
- * get_line_position : returns the value in the static variable line_position for use in another file
- */
+
+
 int16_t get_line_position(void){
 
 	return line_position;
 }
 
-/*
- * CaptureImage : allows you to capture an image
- */
+
 static THD_WORKING_AREA(waCaptureImage, 256);
 static THD_FUNCTION(CaptureImage, arg) {
 
@@ -139,9 +133,7 @@ static THD_FUNCTION(CaptureImage, arg) {
     }
 }
 
-/*
- * ProcessImage : extracting the red pixels and calling the position extraction function
- */
+
 static THD_WORKING_AREA(waProcessImage, 1024);
 static THD_FUNCTION(ProcessImage, arg) {
 
@@ -170,21 +162,10 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//regular call of the function to update the static position variable
 		extract_line_position(image);
 
-		/*
-		// for test with the python scrypt
-		if(send_to_computer){
-			//sends to the computer the image
-		SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
-		}
-		//invert the bool
-		send_to_computer = !send_to_computer;
-		*/
     }
 }
 
-/*
- * process_image_start : starts the two threads
- */
+
 void process_image_start(void){
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);

@@ -9,15 +9,21 @@
 #define DETECTION_LIGNE_H_
 
 /*
- * extract_line_position : update the static variable line1_position with the position of line 1
+ * @brief Update the static variable line1_position with the position of line 1
+ *
+ * @param Unsigned int buffer filled with the last image in RGB565
  */
 void extract_line_position(uint8_t *buffer);
+
 /*
- * get_line_position : returns the value in the static variable line_position for use in another file
+ * @brief Returns the value in the static variable line_position for use in another file
+ *
+ * @return Int variable that gives us the position of the line
  */
 int16_t get_line_position(void);
+
 /*
- * process_image_start : starts the two threads
+ * @brief Starts the two threads
  */
 void process_image_start(void);
 

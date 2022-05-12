@@ -10,17 +10,25 @@
 
 
 /*
- *  p_regulator: allows you to determine a forward or backward speed of the robot
+ * @brief Allows you to determine a forward or backward speed of the robot
+ *
+ * @return int value that represents the speed
  */
 int32_t p_regulator(void);
 
 /*
- * movements_start : allows the activation of the PRegulator thread
+ * @brief Allows the coordination of all movements performed by the robot
  */
 void movements_start(void);
 
+/*
+ * @brief Allows the correction of the robot's position when it returns after detecting a line so that it is centred
+ */
 void correction(void);
 
+/*
+ * @brief Updating the static variable center_position to 0 if the robot was at proximity form the edges
+ */
 void center(void);
 
 
