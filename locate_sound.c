@@ -23,8 +23,8 @@
 #define NB_MIC 3
 
 //counters
-static int ooo;
-static int iii;
+//static int ooo;
+//static int iii;
 
 /* defines used in ad_conv_int.c					*/
 //#define MIC_SAMP_NB 100		// number of microphone samples to store
@@ -43,16 +43,15 @@ static int iii;
 static int max_freq;
 
 
-//int new_sample;
 float mean_table[3][MEAN_MAX];
 int mean_nb;
 float mean[3];
 float signal_max[3], signal_min[3];
 
-static int freq_real;
+//static int freq_real;
 
 //WE NEED TO INITIATE BEFORE
-static int bufferOutput[NB_MIC][2];				//Array to store the mic values
+static float bufferOutput[NB_MIC][2];				//Array to store the mic values
 
 
 void reassign_table(struct Mic_Record stored_mic){

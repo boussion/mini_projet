@@ -29,7 +29,7 @@ static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
 //Different methods used to store the values of the angles
-static float stored_dir[5];
+//static float stored_dir[5];
 static float sum_dir;
 
 //Stores the value of the last average direction calculated
@@ -202,7 +202,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		sound_analysis(micFront_output);
 		if(sound_detection()){
 			//turn_puck(60);
-			float direction;
+			//float direction;
 			process_direction(); //process the direction of the detected sound
 			//chprintf((BaseSequentialStream*)&SD3,"direction mean: %f\r\n", get_last_direction());
 
@@ -216,6 +216,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 //function used to determine the location of the sound, as well as the necessary adjustments to get a readable value
 void process_direction (void){	
 	float direction;
+	//Select the frequency of analysis
 	select_freq();
 
 	direction = get_sound_direction(stored_mic, freq_max);
@@ -225,7 +226,7 @@ void process_direction (void){
 
 	if(direction2 < 50){
 		//chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO LOOOOOWWW %d\r\n");
-		direction2=50;
+		direction2=40;
 	}
 	if(direction2>140){
 		//chprintf((BaseSequentialStream*)&SD3,"NUMBER TOOOOO HIGGGHHHH %d\r\n");
