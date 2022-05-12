@@ -19,7 +19,7 @@
 
 
 
-#define ROTATION_THRESHOLD 50 // Threshold for the speed rotation due to the line detectioùn
+#define ROTATION_THRESHOLD 50 // Threshold for the speed rotation due to the line detectioï¿½n
 #define ERROR_THRESHOLD_SOUND 5 //Error in the angle of rotation
 #define ROTATION_COEFF_LINE 0.5 //Adjustement of the trajectory correction towards the line
 #define ROTATION_COEFF_SOUND 13 //Adjustment of the trajectory correction towards the source of the sound

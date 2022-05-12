@@ -91,10 +91,10 @@ int main(void)
 
     //temp tab used to store values in complex_float format
     //needed bx doFFT_c
-    static complex_float temp_tab[FFT_SIZE];
+   // static complex_float temp_tab[FFT_SIZE];
     //send_tab is used to save the state of the buffer to send (double buffering)
     //to avoid modifications of the buffer while sending it
-    static float send_tab[FFT_SIZE];
+   // static float send_tab[FFT_SIZE];
 
 #ifdef SEND_FROM_MIC
     //starts sound detection
