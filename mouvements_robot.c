@@ -22,11 +22,11 @@
 #define ROTATION_THRESHOLD 50 // Threshold for the speed rotation due to the line detectio�n
 #define ERROR_THRESHOLD_SOUND 5 //Error in the angle of rotation
 #define ROTATION_COEFF_LINE 0.5 //Adjustement of the trajectory correction towards the line
-#define ROTATION_COEFF_SOUND 13 //Adjustment of the trajectory correction towards the source of the sound
+#define ROTATION_COEFF_SOUND 14 //Adjustment of the trajectory correction towards the source of the sound
 #define IMAGE_BUFFER_SIZE 640
 #define MOTOR_SPEED_LIMIT 1100 // [step/s]
-#define KP					3 // go strait ahead
-#define KP_RETURN 			6 // back off
+#define KP					2 // go strait ahead
+#define KP_RETURN 			7 // back off
 #define MAX_ERROR		(MOTOR_SPEED_LIMIT/KP) //Speed limitation given by the orbot
 #define DIST_ROTATION	1300 // rotation speed
 #define SPEED	100
@@ -98,7 +98,7 @@ void correction(void){
 		left_motor_set_speed(SPEED);
 		right_motor_set_speed(-SPEED);
 
-	}while((adjustement_dist()>=distance_min+ERROR_CORRECTION || adjustement_dist()<=distance_min-ERROR_CORRECTION) ||abs(left_motor_get_pos())<DIST_ROTATION);
+	}while((adjustement_dist()>distance_min+ERROR_CORRECTION || adjustement_dist()<=distance_min-ERROR_CORRECTION) ||abs(left_motor_get_pos())<DIST_ROTATION);
 
 
 	if((adjustement_dist()>=distance_min+ERROR_CORRECTION || adjustement_dist()<=distance_min-ERROR_CORRECTION)||abs(left_motor_get_pos())<DIST_ROTATION){

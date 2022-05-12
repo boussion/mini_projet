@@ -44,8 +44,8 @@ static int ooo;
 #define MIN_VALUE_THRESHOLD	10000 
 
 // Frequencies studied:
-#define FREQ_REF	30   // 468.75 Hz
-#define FREQ_CORRECTION FREQ_REF - 3 // Correctif de fréquence déterminé (à peu près 50 Hz)
+#define FREQ_CORRECTION 	3 // Correctif de fréquence déterminé (à peu près 50 Hz)
+#define FREQ_REF	30 + FREQ_CORRECTION  // 468.75 Hz
 #define FREQ_MVT_MIN	(FREQ_REF-2) // FREQ_REF - 30 Hz
 #define FREQ_MVT_MAX 	(FREQ_REF+2) // FREQ_REF + 30 Hz
 #define FREQ_MVT_RANGE (FREQ_MVT_MAX-FREQ_MVT_MIN)	//MAX_FREQ-MIN_FREQ
