@@ -65,8 +65,8 @@ float get_sound_direction(struct Mic_Record stored_mic, int freq_max)
 
 float calculate_direction(void)
 {
-	float delta_t1, delta_t2;
-	float direction, angle1, angle2;
+	float delta_t1;
+	float direction;
 
 	delta_t1 = find_delta_t_phase(0,1);
 
