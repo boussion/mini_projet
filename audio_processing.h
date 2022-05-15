@@ -67,12 +67,6 @@ void store_sound(void);
 
 
 /**
- * @brief put the invoking thread into sleep until it can process the audio datas
- */
-void wait_send_to_computer(void);
-
-
-/**
  * @brief Get the audio buffer ptr
  * 
  * @param name Which buffer is wanted

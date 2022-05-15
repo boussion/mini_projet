@@ -233,10 +233,6 @@ void store_sound(void){
 	stored_mic.Mic2cplx = micBack_cmplx_input[2*freq_max+1];
 }
 
-void wait_send_to_computer(void){
-	chBSemWait(&sendToComputer_sem);
-}
-
 float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	if(name == LEFT_CMPLX_INPUT){
 		return micLeft_cmplx_input;
